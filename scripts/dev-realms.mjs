@@ -12,9 +12,9 @@ import { existsSync } from 'node:fs';
 
 // Edit this list to add/remove local realms. type: Normal | PvP | RP | RP-PvP
 const REALMS = [
-  { name: 'Claudemoon', port: 8787, type: 'Normal' },
-  { name: 'Ironforge', port: 8788, type: 'PvP' },
-  { name: 'Stormhaven', port: 8789, type: 'RP' },
+  { name: 'VAELORIA1', port: 8787, type: 'Normal' },
+  { name: 'VAELORIA2', port: 8788, type: 'PvP' },
+  { name: 'VAELORIA3', port: 8789, type: 'RP' },
 ];
 
 const SERVER = 'dist-server/server.cjs';

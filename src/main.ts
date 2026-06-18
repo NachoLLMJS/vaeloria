@@ -594,15 +594,13 @@ function realmPopulation(online: boolean, players: number): { label: string; cls
   return { label: 'Low', cls: 'low' };
 }
 
-// After login WoW drops you onto a Realm List screen (then character select for
-// the chosen realm). We remember the last realm and jump straight to its
-// characters, with a "Change Realm" button back to this list.
+// After login always show the Realm List screen (then character select for the
+// chosen realm). We still remember the last realm for future UI hints, but never
+// auto-skip the picker: choosing the server is part of the online flow.
 async function enterRealmFlow(): Promise<void> {
   const dir = await api.realms();
   $('#realm-list-user').textContent = api.username ? `${api.username}` : '';
-  const remembered = localStorage.getItem(LAST_REALM_KEY);
-  const auto = dir.realms.find((r) => r.name === remembered);
-  if (auto) { selectRealm(auto); return; }
+
   showRealmList(dir);
 }
 

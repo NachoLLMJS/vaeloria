@@ -125,9 +125,17 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
 // after switching realms in the picker. Only the configured realm origins are
 // allowed; auth is via bearer token (no cookies), so reflecting these specific
 // origins is safe.
+function allowedCorsOrigin(origin: string): boolean {
+  if (REALM_ORIGINS.has(origin)) return true;
+  // Local dev: the Vite frontend runs on 5173 and calls realm servers on
+  // 8787/8788/8789 directly after the player picks a realm. Those requests use
+  // bearer auth, not cookies, so allowing the local frontend origin is safe.
+  return /^https?:\/\/(localhost|127\.0\.0\.1):5173$/.test(origin);
+}
+
 function maybeCors(req: http.IncomingMessage, res: http.ServerResponse): void {
   const origin = req.headers.origin;
-  if (typeof origin === 'string' && REALM_ORIGINS.has(origin)) {
+  if (typeof origin === 'string' && allowedCorsOrigin(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
