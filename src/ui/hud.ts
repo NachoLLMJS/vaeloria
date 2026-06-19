@@ -88,6 +88,7 @@ export class Hud {
   private lastCombatEventAt = 0;
   private lastZoneId = '';
   private mapZoneId = ''; // zone the cached map-window canvas was rendered for
+  private mapImage: HTMLImageElement | null = null; // painted world-map base for the outdoor vale
   private ignoredChatNames = new Set<string>();
   private socialTab: 'friends' | 'guild' | 'ignore' = 'friends';
   // split signatures: structural changes (tab, guild membership) rebuild the
@@ -120,6 +121,10 @@ export class Hud {
     const mm = $('#minimap') as unknown as HTMLCanvasElement;
     this.minimapCtx = mm.getContext('2d')!;
     this.minimapBg = this.renderTerrainCanvas(140, { minX: WORLD_MIN_X, maxX: WORLD_MAX_X, minZ: WORLD_MIN_Z, maxZ: WORLD_MAX_Z });
+    // painted world-map base; redraw the map window once it finishes loading
+    this.mapImage = new Image();
+    this.mapImage.onload = () => { if ($('#map-window').style.display === 'block') this.updateMapWindow(); };
+    this.mapImage.src = '/MAPBASE.png';
     $('#release-btn').addEventListener('click', () => { this.sim.releaseSpirit(); });
     // classic WoW: the player interaction menu opens from the target portrait
     $('#target-frame').addEventListener('contextmenu', (ev) => {
@@ -926,34 +931,45 @@ export class Hud {
       ? zoneAt(dungeon.doorPos.z)
       : ZONES.find((z) => z.id === this.lastZoneId) ?? zoneAt(p.pos.z);
     const region = { minX: WORLD_MIN_X, maxX: WORLD_MAX_X, minZ: zone.zMin, maxZ: zone.zMax };
-    if (!this.mapBg || this.mapZoneId !== zone.id) {
-      this.mapBg = this.renderTerrainCanvas(280, region);
-      this.mapZoneId = zone.id;
-    }
+    // The painted base (MAPBASE.png) already carries the vale's title + POI
+    // labels, so when it's available for the outdoor vale we draw it and skip
+    // the procedural terrain + baked-in text below.
+    const useImg = !!this.mapImage && this.mapImage.complete && this.mapImage.naturalWidth > 0 && zone.name === 'Eastbrook Vale';
     ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(this.mapBg, 0, 0, S, S);
+    if (useImg) {
+      ctx.clearRect(0, 0, S, S);
+      ctx.drawImage(this.mapImage!, 0, 0, S, S);
+    } else {
+      if (!this.mapBg || this.mapZoneId !== zone.id) {
+        this.mapBg = this.renderTerrainCanvas(280, region);
+        this.mapZoneId = zone.id;
+      }
+      ctx.drawImage(this.mapBg, 0, 0, S, S);
+    }
     const spanX = region.maxX - region.minX;
     const spanZ = region.maxZ - region.minZ;
     const toMap = (x: number, z: number) => ({
       mx: ((region.maxX - x) / spanX) * S, // +X is map-left (east = -X)
       my: ((region.maxZ - z) / spanZ) * S,
     });
-    // zone title
-    ctx.font = 'bold 16px Georgia';
     ctx.textAlign = 'center';
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
     ctx.fillStyle = '#ffe9a0';
-    ctx.strokeText(zone.name, S / 2, 20);
-    ctx.fillText(zone.name, S / 2, 20);
-    // labels
-    ctx.font = 'bold 13px Georgia';
-    const label = (x: number, z: number, text: string) => {
-      const { mx, my } = toMap(x, z);
-      ctx.strokeText(text, mx, my);
-      ctx.fillText(text, mx, my);
-    };
-    for (const poi of zone.pois) label(poi.x, poi.z, poi.label);
+    if (!useImg) {
+      // zone title (painted base already has it)
+      ctx.font = 'bold 16px Georgia';
+      ctx.strokeText(zone.name, S / 2, 20);
+      ctx.fillText(zone.name, S / 2, 20);
+      // POI labels (painted base already has them)
+      ctx.font = 'bold 13px Georgia';
+      const label = (x: number, z: number, text: string) => {
+        const { mx, my } = toMap(x, z);
+        ctx.strokeText(text, mx, my);
+        ctx.fillText(text, mx, my);
+      };
+      for (const poi of zone.pois) label(poi.x, poi.z, poi.label);
+    }
     // dungeon entrance portals in this zone
     for (const dungeon of DUNGEON_LIST) {
       if (dungeon.doorPos.z < zone.zMin || dungeon.doorPos.z >= zone.zMax) continue;
@@ -963,11 +979,13 @@ export class Hud {
       ctx.arc(mx, my, 5, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = '#e0c0ff';
-      ctx.font = 'bold 12px Georgia';
-      ctx.strokeText(dungeon.name, mx, my - 9);
-      ctx.fillText(dungeon.name, mx, my - 9);
-      ctx.font = 'bold 13px Georgia';
+      if (!useImg) {
+        ctx.fillStyle = '#e0c0ff';
+        ctx.font = 'bold 12px Georgia';
+        ctx.strokeText(dungeon.name, mx, my - 9);
+        ctx.fillText(dungeon.name, mx, my - 9);
+        ctx.font = 'bold 13px Georgia';
+      }
       ctx.fillStyle = '#ffe9a0';
     }
     // npcs
@@ -1489,38 +1507,43 @@ export class Hud {
   renderBags(): void {
     const el = $('#bags');
     const sim = this.sim;
-    el.innerHTML = `<div class="panel-title"><span>Bags</span><span class="x-btn" data-close>✕</span></div>`;
+    el.innerHTML = `<div class="panel-title"><span>Backpack</span><span class="x-btn" data-close>✕</span></div>`;
     const grid = document.createElement('div');
     grid.className = 'bag-grid';
-    if (sim.inventory.length === 0) {
-      grid.innerHTML = `<div style="font-size:12px;color:#887c5c;padding:6px">Your bags are empty.</div>`;
-    }
-    for (const s of [...sim.inventory]) {
-      const item = ITEMS[s.itemId];
-      if (!item) continue;
-      const row = document.createElement('div');
-      row.className = 'bag-item';
-      const qColor = QUALITY_COLOR[item.quality ?? 'common'] ?? '#fff';
-      row.innerHTML = `${this.itemIcon(item)}<span style="color:${qColor}">${item.name}</span><span class="bi-count">${s.count > 1 ? 'x' + s.count : ''}</span>`;
-      row.addEventListener('click', () => {
-        if (this.tradeOpen) {
-          this.addItemToTrade(s.itemId);
-        } else if (this.vendorOpen) {
-          this.sim.sellItem(s.itemId);
-        } else {
-          this.sim.useItem(s.itemId);
-          this.renderBags();
-        }
-      });
-      this.attachTooltip(row, () => {
-        let extra = '';
-        if (this.tradeOpen) extra = '<div class="tt-sub">Click to offer in trade</div>';
-        else if (this.vendorOpen) extra = '<div class="tt-sub">Click to sell</div>';
-        else if (item.kind === 'weapon' || item.kind === 'armor') extra = '<div class="tt-sub">Click to equip</div>';
-        else if (item.kind === 'food' || item.kind === 'drink') extra = '<div class="tt-sub">Click to consume</div>';
-        return this.itemTooltip(item) + extra;
-      });
-      grid.appendChild(row);
+    // WoW-style fixed slot grid: items fill from the top-left, the rest stay empty.
+    const items = [...sim.inventory];
+    const COLS = 8;
+    const BASE_SLOTS = 32; // backpack baseline; grows in whole rows when fuller
+    const slotCount = Math.max(BASE_SLOTS, Math.ceil(items.length / COLS) * COLS);
+    for (let i = 0; i < slotCount; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'bag-slot';
+      const s = items[i];
+      const item = s ? ITEMS[s.itemId] : undefined;
+      if (s && item) {
+        const q = item.quality ?? 'common';
+        slot.classList.add('filled', `q-${q}`);
+        slot.innerHTML = `${this.itemIcon(item)}${s.count > 1 ? `<span class="bi-count">${s.count}</span>` : ''}`;
+        slot.addEventListener('click', () => {
+          if (this.tradeOpen) {
+            this.addItemToTrade(s.itemId);
+          } else if (this.vendorOpen) {
+            this.sim.sellItem(s.itemId);
+          } else {
+            this.sim.useItem(s.itemId);
+            this.renderBags();
+          }
+        });
+        this.attachTooltip(slot, () => {
+          let extra = '';
+          if (this.tradeOpen) extra = '<div class="tt-sub">Click to offer in trade</div>';
+          else if (this.vendorOpen) extra = '<div class="tt-sub">Click to sell</div>';
+          else if (item.kind === 'weapon' || item.kind === 'armor') extra = '<div class="tt-sub">Click to equip</div>';
+          else if (item.kind === 'food' || item.kind === 'drink') extra = '<div class="tt-sub">Click to consume</div>';
+          return this.itemTooltip(item) + extra;
+        });
+      }
+      grid.appendChild(slot);
     }
     el.appendChild(grid);
     const money = document.createElement('div');

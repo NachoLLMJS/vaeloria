@@ -109,6 +109,9 @@ export class CharacterVisual {
   private fishingPoseShift = new THREE.Vector3();
 
   private baseState: BaseState = 'idle';
+  // preview-only: swap the idle clip (e.g. relaxed 'Idle' instead of the
+  // combat 'Idle_Weapon') without touching the in-game clip map.
+  private idleClipOverride: string | null = null;
   private current: THREE.AnimationAction | null = null;
   private currentIsOneShot = false;
   private deadLock = false;
@@ -503,7 +506,17 @@ export class CharacterVisual {
       case 'chop': return this.action(c.attack[0]) ?? this.action(c.cast) ?? this.action(c.idle);
       case 'swim': return this.action(c.swim) ?? this.action(c.idle);
       case 'sit': return this.action(c.sitDown) ?? this.action(c.sitIdle) ?? this.action(c.idle);
-      default: return this.action(c.idle);
+      default: return this.action(this.idleClipOverride ?? c.idle) ?? this.action(c.idle);
+    }
+  }
+
+  /** Preview-only: force a different idle clip (relaxed front-facing pose).
+   *  Pass null to restore the clip-map idle. */
+  setIdleClip(name: string | null): void {
+    this.idleClipOverride = name;
+    if (this.baseState === 'idle' && !this.currentIsOneShot) {
+      const a = this.action(name ?? this.def.clips.idle) ?? this.action(this.def.clips.idle);
+      if (a && a !== this.current) this.fadeTo(a, 0.2, false);
     }
   }
 

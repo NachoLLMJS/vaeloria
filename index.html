@@ -12,7 +12,7 @@
 <link rel="preload" as="image" href="/loading-screen.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Inter:wght@300..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Cinzel+Decorative:wght@700;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300..700&display=swap" rel="stylesheet">
 <!-- Google tag (gtag.js) — skipped on localhost so dev sessions don't pollute analytics -->
 <script>
   if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
@@ -127,28 +127,35 @@
   #ui > * { pointer-events: auto; }
 
   .panel {
-    background: var(--panel-bg);
-    border: 2px solid var(--border);
-    outline: 1px solid #000;
-    border-radius: 6px;
-    box-shadow: 0 2px 16px #000c, inset 0 0 24px #0006, inset 0 1px 0 #ffffff14;
+    background: linear-gradient(168deg, #1a1510F2 0%, #110c08F2 58%, #0a0705F2 100%);
+    border: 2px solid #2a2114;
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 2px #7c5a22,
+      0 0 0 3px #000,
+      0 10px 30px #000d,
+      inset 0 1px 0 rgba(255,235,170,.14),
+      inset 0 0 30px rgba(0,0,0,.5);
     color: #e8d8a8;
   }
   .panel-title {
-    font-family: var(--title-font);
+    font-family: var(--font-heading);
+    font-weight: 700;
     color: var(--gold);
     font-size: 15px;
-    letter-spacing: 0.5px;
-    text-shadow: 1px 1px 2px #000;
-    border-bottom: 1px solid #463a1c;
-    padding-bottom: 6px;
-    margin-bottom: 8px;
+    letter-spacing: 0.6px;
+    text-shadow: 0 1px 2px #000, 0 0 10px rgba(255,200,90,.25);
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(90deg, transparent, #b8902f 25% 75%, transparent) 1;
+    padding-bottom: 7px;
+    margin-bottom: 9px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  .x-btn { color: #c9b27a; cursor: pointer; font-size: 14px; padding: 0 4px; border: 1px solid #463a1c; border-radius: 3px; background: #1a1410; }
-  .x-btn:hover { color: #fff; border-color: var(--gold-dim); }
+  .x-btn { color: #c9b27a; cursor: pointer; font-size: 14px; padding: 0 5px; border: 1px solid #6b4d19; border-radius: 4px;
+    background: linear-gradient(180deg,#221b10,#15100a); box-shadow: inset 0 1px 0 #ffffff14; }
+  .x-btn:hover { color: #fff; border-color: var(--gold); box-shadow: 0 0 8px rgba(255,209,0,.35), inset 0 1px 0 #ffffff14; }
   .gold { color: var(--gold); }
 
   /* ---------- nameplates ---------- */
@@ -196,64 +203,94 @@
     text-align: center; overflow-wrap: break-word; will-change: transform; z-index: 21; }
   .chat-bubble.yell { font-weight: bold; color: #7a1408; border-color: #c43a2a; }
 
-  /* ---------- unit frames ---------- */
-  .unitframe { position: absolute; top: 12px; display: flex; gap: 0; align-items: center; }
-  #player-frame { left: 12px; }
-  #target-frame { left: 320px; display: none; }
-  .portrait-wrap { position: relative; width: 64px; height: 64px; z-index: 2; }
+  /* ---------- unit frames (forged) ---------- */
+  .unitframe { position: absolute; top: 14px; display: flex; gap: 0; align-items: center;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,.55)); }
+  #player-frame { left: 14px; }
+  #target-frame { left: 322px; display: none; }
+  .portrait-wrap { position: relative; width: 66px; height: 66px; z-index: 2; }
   .portrait {
     width: 60px; height: 60px; border-radius: 50%;
-    border: 3px solid var(--border); outline: 1px solid #000;
+    border: 2px solid #241a0c;
     background: radial-gradient(circle at 35% 30%, #3a3a4e, #14141c);
-    box-shadow: 0 2px 8px #000c, inset 0 0 12px #0009;
+    box-shadow:
+      0 0 0 1px #000,
+      0 0 0 3px #c39a3e,
+      0 0 0 4px #6b4d19,
+      0 0 0 5px #0a0805,
+      0 3px 9px #000c,
+      inset 0 0 12px #0009,
+      0 0 22px rgba(255,206,112,.34);
     display: flex; align-items: center; justify-content: center;
   }
   .portrait canvas { border-radius: 50%; }
+  /* faint gold filigree sheen across the portrait ring */
+  .portrait::after { content:''; position:absolute; inset:-1px; border-radius:50%; pointer-events:none;
+    background: conic-gradient(from 215deg, transparent 0 28%, rgba(255,238,180,.45) 42%, transparent 56% 100%);
+    mix-blend-mode: screen; opacity:.55; }
   .level-chip {
-    position: absolute; bottom: -3px; left: -3px; width: 24px; height: 24px;
-    background: radial-gradient(circle at 40% 35%, #4a3a14, #241c08);
-    border: 2px solid var(--gold-dim); border-radius: 50%;
-    color: var(--gold); font-size: 12px; font-weight: bold;
+    position: absolute; bottom: -4px; left: -4px; width: 26px; height: 26px;
+    background: radial-gradient(circle at 38% 32%, #fff0a9 0 12%, #d98225 36%, #7b2017 72%, #260806 100%);
+    border: 2px solid #ffe099; border-radius: 50%;
+    color: #fff7d2; font-size: 12px; font-weight: bold; font-family: var(--font-heading);
     display: flex; align-items: center; justify-content: center;
-    text-shadow: 1px 1px 1px #000; z-index: 3;
+    box-shadow: 0 0 0 1px rgba(60,16,8,.95), 0 2px 6px rgba(0,0,0,.7), inset 0 1px 3px rgba(255,255,255,.5), 0 0 9px rgba(255,120,36,.4);
+    text-shadow: 0 1px 2px #000; z-index: 3;
   }
-  .uf-bars { width: 190px; margin-left: -8px; padding: 5px 8px 5px 14px;
-    background: var(--panel-bg); border: 2px solid var(--border); outline: 1px solid #000;
-    border-radius: 0 6px 6px 0; box-shadow: 0 2px 10px #000a; }
+  .uf-bars { position: relative; width: 198px; margin-left: -10px; padding: 6px 9px 7px 16px;
+    background: linear-gradient(180deg, #1c1710 0%, #120d08 60%, #0b0805 100%);
+    border: 2px solid transparent;
+    border-image: linear-gradient(180deg, #f4dd92 0%, #c39a3e 45%, #7c5a22 100%) 1;
+    border-radius: 0 7px 7px 0;
+    box-shadow: 0 3px 12px #000b, inset 0 1px 0 rgba(255,235,170,.12), inset 0 0 22px rgba(0,0,0,.5); }
+  /* corner rivets */
+  .uf-bars::before { content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 7px 7px, #ffe9a8 0 1.4px, #8a6620 2.2px, transparent 3px),
+      radial-gradient(circle at calc(100% - 7px) 7px, #ffe9a8 0 1.4px, #8a6620 2.2px, transparent 3px),
+      radial-gradient(circle at 7px calc(100% - 7px), #ffe9a8 0 1.4px, #8a6620 2.2px, transparent 3px),
+      radial-gradient(circle at calc(100% - 7px) calc(100% - 7px), #ffe9a8 0 1.4px, #8a6620 2.2px, transparent 3px); }
   #target-frame .portrait-wrap { order: 2; }
-  #target-frame .uf-bars { order: 1; margin-left: 0; margin-right: -8px; border-radius: 6px 0 0 6px; padding: 5px 14px 5px 8px; }
-  #target-frame .level-chip { left: auto; right: -3px; }
-  .uf-name { font-size: 13px; font-weight: bold; font-family: var(--title-font); color: var(--gold);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px #000; }
-  .bar { position: relative; height: 15px; background: #1a1a1a; border: 1px solid #000; margin-top: 3px; border-radius: 2px; overflow: hidden; }
-  .bar-fill { position: absolute; inset: 0; width: 100%; transform-origin: left;
-    background-image: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.15)); }
-  .bar-text { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 15px; color: #fff; text-shadow: 1px 1px 1px #000; font-weight: bold; }
-  .hp .bar-fill { background-color: #1eb838; }
-  .mana .bar-fill { background-color: #2b7bd4; }
-  .rage .bar-fill { background-color: #c0392b; }
-  .energy .bar-fill { background-color: #e4c531; }
-  .combo-row { display: flex; gap: 4px; margin-top: 4px; height: 10px; }
+  #target-frame .uf-bars { order: 1; margin-left: 0; margin-right: -10px; border-radius: 7px 0 0 7px; padding: 6px 16px 7px 9px; }
+  #target-frame .level-chip { left: auto; right: -4px; }
+  .uf-name { font-size: 12.5px; font-weight: 700; font-family: var(--font-heading); color: #ffe9ad;
+    letter-spacing: .4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 1px 2px #000, 0 0 10px rgba(255,200,90,.4); margin-bottom: 1px; }
+  .bar { position: relative; height: 16px; background: linear-gradient(180deg,#0a0a0a,#161616);
+    border: 1px solid #000; margin-top: 4px; border-radius: 3px; overflow: hidden;
+    box-shadow: inset 0 0 6px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06); }
+  .bar-fill { position: absolute; inset: 0; width: 100%; transform-origin: left; border-radius: 2px;
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0.05) 42%, rgba(0,0,0,0.28)); }
+  .bar-text { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 16px; color: #fff;
+    text-shadow: 0 1px 1px #000, 0 0 3px #000; font-weight: bold; letter-spacing: .3px; }
+  .hp .bar-fill { background-color: #1eb838; box-shadow: inset 0 0 10px rgba(120,255,140,.25), 0 0 8px rgba(40,200,70,.3); }
+  .mana .bar-fill { background-color: #2b7bd4; box-shadow: inset 0 0 10px rgba(120,180,255,.3), 0 0 9px rgba(60,130,255,.4); }
+  .rage .bar-fill { background-color: #c0392b; box-shadow: inset 0 0 10px rgba(255,120,90,.3), 0 0 9px rgba(220,60,40,.4); }
+  .energy .bar-fill { background-color: #e4c531; box-shadow: inset 0 0 10px rgba(255,240,150,.35), 0 0 9px rgba(230,200,50,.4); }
+  .combo-row { display: flex; gap: 4px; margin-top: 5px; height: 10px; }
   .combo-pip { width: 12px; height: 10px; border-radius: 50%; border: 1px solid #5c2020; background: #2a0d0d; }
   .combo-pip.on { background: radial-gradient(circle at 35% 30%, #ff7a5e, #c0392b); box-shadow: 0 0 5px #ff5533aa; border-color: #ffad99; }
 
-  /* ---------- buff bar ---------- */
-  #buff-bar { position: absolute; right: 196px; top: 14px; display: flex; flex-direction: row-reverse; flex-wrap: wrap; gap: 4px; max-width: 320px; pointer-events: auto; }
-  .buff { width: 28px; height: 28px; border: 1px solid #3a6ea8; border-radius: 4px;
+  /* ---------- buff bar (forged) ---------- */
+  #buff-bar { position: absolute; right: 196px; top: 14px; display: flex; flex-direction: row-reverse; flex-wrap: wrap; gap: 5px; max-width: 320px; pointer-events: auto; }
+  .buff { width: 30px; height: 30px; border: 1px solid #6b4d19; border-radius: 5px;
     position: relative; cursor: default; background-color: #10141c;
-    background-size: cover; background-position: center; background-repeat: no-repeat; }
-  .buff.debuff { border-color: #c0392b; }
-  .buff .dur { position: absolute; bottom: -13px; left: 0; right: 0; text-align: center; font-size: 9px; color: #eee; text-shadow: 1px 1px 1px #000; }
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    box-shadow: 0 0 0 1px #000, inset 0 1px 0 rgba(255,235,170,.28), 0 2px 5px #000a; }
+  .buff.debuff { border-color: #b8332a; box-shadow: 0 0 0 1px #000, inset 0 1px 0 rgba(255,150,120,.22), 0 0 7px rgba(200,50,40,.35); }
+  .buff .dur { position: absolute; bottom: -13px; left: 0; right: 0; text-align: center; font-size: 9px; font-weight: bold; color: #ffeec0; text-shadow: 0 1px 2px #000; }
 
-  /* ---------- cast bar ---------- */
-  #castbar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 200px; width: 300px;
-    height: 24px; display: none; border: 2px solid var(--border); outline: 1px solid #000; border-radius: 4px; background: #100c08; overflow: hidden; }
-  #castbar .fill { height: 100%; width: 0%; background: linear-gradient(#ffe48a, #c9941a 60%, #9a6f12);
-    box-shadow: inset 0 1px 0 #fff5; }
-  #castbar.channel .fill { background: linear-gradient(#8ad4ff, #1a74c9 60%, #125a9a); }
-  #castbar.chopping .fill { background: linear-gradient(#ffe48a, #c9941a 60%, #9a6f12); }
-  #castbar .label { position: absolute; inset: 0; text-align: center; font-size: 12px; line-height: 21px;
-    color: #fff; text-shadow: 1px 1px 2px #000; font-family: var(--title-font); }
+  /* ---------- cast bar (forged) ---------- */
+  #castbar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 202px; width: 320px;
+    height: 26px; display: none; border: 2px solid #241a0c; border-radius: 6px; overflow: hidden;
+    background: linear-gradient(180deg, #15100a, #0c0805);
+    box-shadow: 0 0 0 2px #7c5a22, 0 0 0 3px #000, 0 4px 14px #000c, inset 0 0 10px #000a; }
+  #castbar .fill { height: 100%; width: 0%; background: linear-gradient(180deg, #fff0b0, #e3b43a 55%, #a9781a);
+    box-shadow: inset 0 1px 0 #fff8, 0 0 10px rgba(255,200,90,.5); }
+  #castbar.channel .fill { background: linear-gradient(180deg, #bfe9ff, #3a93e0 55%, #1d63a8); box-shadow: inset 0 1px 0 #fff8, 0 0 10px rgba(80,160,255,.5); }
+  #castbar.chopping .fill { background: linear-gradient(180deg, #fff0b0, #e3b43a 55%, #a9781a); box-shadow: inset 0 1px 0 #fff8, 0 0 10px rgba(255,200,90,.5); }
+  #castbar .label { position: absolute; inset: 0; text-align: center; font-size: 12.5px; line-height: 24px;
+    color: #fff; text-shadow: 0 1px 2px #000, 0 0 4px #000; font-family: var(--font-heading); font-weight: 600; letter-spacing: .3px; }
   #tree-interact-prompt { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 72;
     display: none; padding: 8px 14px; min-width: 220px; text-align: center; border: 1px solid #7a5a22;
     outline: 1px solid #000; border-radius: 6px; background: linear-gradient(#241b10ee, #0d0905ee);
@@ -262,29 +299,51 @@
   #tree-interact-prompt .key { display: inline-block; min-width: 18px; padding: 1px 5px; margin-right: 5px;
     border: 1px solid #b58a32; border-radius: 3px; background: #110d08; color: #fff3b2; }
 
-  /* ---------- bottom cluster ---------- */
-  #bottom-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 6px; text-align: center; }
-  #xpbar { width: 612px; height: 10px; background: #14101e; border: 1px solid #000; outline: 1px solid #3a3148;
-    margin: 0 auto 4px; position: relative; border-radius: 2px; overflow: hidden; }
-  #xpbar .fill { height: 100%; width: 0%; background: linear-gradient(#b85eff, #6a1bb0); }
+  /* ---------- bottom cluster (forged) ---------- */
+  #bottom-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 8px; text-align: center; }
+  #xpbar { width: 612px; height: 11px; background: linear-gradient(180deg,#0e0a18,#16101e);
+    border: 1px solid #000; outline: 1px solid #4a3d1d;
+    box-shadow: inset 0 0 8px rgba(0,0,0,.8), 0 0 9px rgba(150,80,255,.12);
+    margin: 0 auto 6px; position: relative; border-radius: 999px; overflow: hidden; }
+  #xpbar .fill { height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(180deg, #c98bff, #8a2be0 55%, #5a169c);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 0 10px rgba(150,80,255,.5); }
   #xpbar .ticks { position: absolute; inset: 0; display: flex; }
   #xpbar .ticks i { flex: 1; border-right: 1px solid #00000055; }
-  #xpbar .label { position: absolute; inset: 0; font-size: 9px; color: #fff; text-align: center; line-height: 10px; text-shadow: 1px 1px 1px #000; opacity: 0; transition: opacity .15s; }
+  #xpbar .label { position: absolute; inset: 0; font-size: 9px; color: #fff; text-align: center; line-height: 11px; text-shadow: 1px 1px 1px #000; opacity: 0; transition: opacity .15s; }
   #xpbar:hover .label { opacity: 1; }
-  #actionbar-row { display: flex; align-items: flex-end; gap: 8px; }
+  #actionbar-row { display: flex; align-items: flex-end; gap: 10px; }
   /* xp bar stacks directly on the action bar; the taller side-button
      column must not push it up (it used to float ~150px above the bar) */
-  #actionbar-stack { display: flex; flex-direction: column; }
-  #actionbar { display: flex; gap: 4px; padding: 6px; }
-  .action-btn { width: 46px; height: 46px; position: relative; border: 2px solid #4a3d1d; border-radius: 6px;
-    background: radial-gradient(circle at 35% 30%, #2c2c3a, #15151f); color: #fff; cursor: pointer;
-    font-family: var(--title-font); text-shadow: 1px 1px 2px #000;
-    box-shadow: inset 0 1px 0 #ffffff18, 0 2px 4px #0009; }
+  #actionbar-stack { display: flex; flex-direction: column; position: relative; }
+  /* forged metal tray */
+  #actionbar { display: flex; gap: 5px; padding: 7px 9px; position: relative;
+    background: linear-gradient(180deg, #221b10 0%, #15100a 55%, #0e0a06 100%);
+    border: 2px solid transparent;
+    border-image: linear-gradient(180deg, #f4dd92 0%, #c39a3e 45%, #6b4d19 100%) 1;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px #000c, 0 0 22px rgba(255,196,84,.16), inset 0 1px 0 rgba(255,235,170,.12), inset 0 0 26px rgba(0,0,0,.5); }
+  /* action-bar end caps — drop the PNG art at:
+     public/images/hud/actionbar-cap-left.png  and  actionbar-cap-right.png
+     (served as /images/hud/...). Until the files exist the bar just shows no caps.
+     Tune placement with the vars below if needed. */
+  #actionbar { --cap-w: 88px; --cap-h: 136px; --cap-overlap: 30px; }
+  #actionbar::before, #actionbar::after { content:''; position:absolute; bottom:-10px; z-index:5; pointer-events:none;
+    width: var(--cap-w); height: var(--cap-h);
+    background-position: bottom center; background-repeat: no-repeat; background-size: contain;
+    filter: drop-shadow(0 4px 7px rgba(0,0,0,.6)); }
+  #actionbar::before { left: calc(-1 * (var(--cap-w) - var(--cap-overlap))); background-image: url('/images/hud/actionbar-cap-left.png'); }
+  #actionbar::after  { right: calc(-1 * (var(--cap-w) - var(--cap-overlap))); background-image: url('/images/hud/actionbar-cap-right.png'); }
+  .action-btn { width: 46px; height: 46px; position: relative; border: 1px solid #6b4d19; border-radius: 6px;
+    background: linear-gradient(180deg, #2c2536, #15151f); color: #fff; cursor: pointer;
+    font-family: var(--font-heading); text-shadow: 1px 1px 2px #000;
+    box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 10px #0007, 0 2px 4px #0009; }
   .action-btn .icon-label { position: absolute; inset: 1px; border-radius: 4px;
     background-size: cover; background-position: center; background-repeat: no-repeat; pointer-events: none; }
-  .action-btn:hover { border-color: var(--gold); }
+  .action-btn:hover { border-color: var(--gold); box-shadow: inset 0 1px 0 #ffffff22, 0 0 11px rgba(255,209,0,.45), 0 2px 4px #0009; }
   .action-btn:active { transform: translateY(1px); }
-  .action-btn.empty { background: #0d0d13; cursor: default; box-shadow: inset 0 0 10px #000; }
+  .action-btn.empty { background: linear-gradient(180deg,#141019,#0b0b11); cursor: default; border-color: #3a2f18;
+    box-shadow: inset 0 0 12px #000, inset 0 1px 0 #ffffff08; }
   .action-btn .keybind { position: absolute; top: 1px; right: 3px; font-size: 9px; color: #ddd; font-family: var(--ui-font); }
   .action-btn .cdtext { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     font-size: 17px; color: var(--gold); text-shadow: 1px 1px 2px #000; }
@@ -294,21 +353,26 @@
   .action-btn.queued { border-color: #fff; box-shadow: 0 0 9px #ffd100cc, inset 0 1px 0 #ffffff18; }
   .action-btn:not(.empty)[draggable="true"] { cursor: grab; }
   .action-btn.drop-target { border-color: #7fd1ff; box-shadow: 0 0 8px #7fd1ff88; }
-  #side-buttons { display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px; }
-  .micro-btn { width: 34px; height: 30px; border: 2px solid #4a3d1d; border-radius: 5px;
-    background: radial-gradient(circle at 35% 30%, #2c2c3a, #15151f); color: #d8c89a; cursor: pointer;
-    font-size: 12px; font-weight: bold; box-shadow: inset 0 1px 0 #ffffff18, 0 2px 4px #0009; position: relative; }
-  .micro-btn:hover { border-color: var(--gold); color: #fff; }
-  .micro-btn .keybind { position: absolute; bottom: -1px; right: 2px; font-size: 8px; color: #998; }
+  .micro-btn { width: 38px; height: 38px; border: 1px solid #6b4d19; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+    background: linear-gradient(180deg, #2c2536, #15151f); color: #e6d09a; cursor: pointer;
+    box-shadow: inset 0 1px 0 #ffffff1f, inset 0 0 8px #0006, 0 2px 4px #0009; position: relative;
+    transition: color .12s, border-color .12s, box-shadow .12s, transform .12s; }
+  .micro-btn:hover { border-color: var(--gold); color: #fff; transform: translateY(-1px);
+    box-shadow: 0 0 11px rgba(255,196,84,.5), inset 0 1px 0 #ffffff22; }
+  .micro-btn svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; display: block; }
+  .micro-btn .keybind { position: absolute; bottom: 0; right: 2px; font-size: 8px; line-height: 1; color: #8a7c52; font-family: var(--ui-font); }
 
   /* ---------- chat frame ---------- */
   #chatlog-wrap { position: absolute; left: 12px; bottom: 8px; width: 370px; }
   #chatlog-tabs { display: flex; gap: 2px; margin-left: 6px; margin-bottom: -1px; position: relative; z-index: 2; }
-  .chat-tab { height: 22px; padding: 0 12px; border: 1px solid #3a321d; border-bottom: none;
-    border-radius: 6px 6px 0 0; background: linear-gradient(#1c1824, #0d0b13); color: #95886a;
-    cursor: pointer; font-family: var(--title-font); font-size: 12px; text-shadow: 1px 1px 1px #000; }
-  .chat-tab.active { color: var(--gold); border-color: #6f5a2a; background: linear-gradient(#2a2436, #161220); }
-  #chatlog-frame { height: 184px; padding: 0; overflow: hidden; border-radius: 0 6px 6px 6px; }
+  .chat-tab { height: 23px; padding: 0 13px; border: 1px solid #4a3d1d; border-bottom: none;
+    border-radius: 7px 7px 0 0; background: linear-gradient(#1c1824, #0d0b13); color: #95886a;
+    cursor: pointer; font-family: var(--font-heading); font-weight: 600; font-size: 12px; text-shadow: 1px 1px 1px #000; }
+  .chat-tab.active { color: var(--gold); border-color: #8a6620; background: linear-gradient(#2a2436, #161220);
+    box-shadow: 0 0 9px rgba(255,200,90,.18); }
+  #chatlog-frame { height: 184px; padding: 0; overflow: hidden; border-radius: 0 8px 8px 8px; }
   .chat-pane { display: none; height: 100%; overflow-y: auto; overflow-x: hidden; padding: 7px 10px;
     font-size: 11px; line-height: 1.45; }
   .chat-pane.active { display: block; }
@@ -330,10 +394,13 @@
   .report-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 
   /* ---------- quest tracker ---------- */
-  #quest-tracker { position: absolute; right: 14px; top: 262px; width: 240px; font-size: 12px;
+  #quest-tracker { position: absolute; right: 14px; top: 330px; width: 240px; font-size: 12px;
     color: var(--gold); text-shadow: 1px 1px 2px #000; pointer-events: none; }
-  #quest-tracker .qt-header { font-family: var(--title-font); font-size: 14px; border-bottom: 1px solid #ffd10044; margin-bottom: 4px; padding-bottom: 2px; }
-  #quest-tracker .qt-title { font-weight: bold; margin-top: 8px; font-family: var(--title-font); }
+  #quest-tracker .qt-header { font-family: var(--font-heading); font-weight: 700; font-size: 14px; letter-spacing: .4px;
+    text-shadow: 0 1px 2px #000, 0 0 10px rgba(255,200,90,.25);
+    border-bottom: 1px solid transparent; border-image: linear-gradient(90deg, #b8902f, transparent) 1;
+    margin-bottom: 5px; padding-bottom: 3px; }
+  #quest-tracker .qt-title { font-weight: bold; margin-top: 8px; font-family: var(--font-heading); }
   #quest-tracker .qt-obj { color: #e8e0c8; font-size: 11px; margin-left: 8px; }
   #quest-tracker .qt-obj.done { color: #7fdc4f; }
 
@@ -355,13 +422,41 @@
   .mt-num { position: absolute; right: 5px; top: 0; line-height: 17px; font-size: 10px; color: #ffe;
     text-shadow: 1px 1px 1px #000; }
 
-  /* ---------- minimap ---------- */
+  /* ---------- minimap (forged ring) ---------- */
   #minimap-wrap { position: absolute; right: 12px; top: 10px; width: 170px; text-align: center; }
-  #zone-label { font-size: 13px; color: var(--gold); font-family: var(--title-font); text-shadow: 1px 1px 3px #000; margin-bottom: 3px; letter-spacing: 0.5px; }
-  #minimap { border-radius: 50%; border: 4px solid var(--border); outline: 1px solid #000; box-shadow: 0 0 14px #000c, inset 0 0 20px #0008; }
+  #zone-label { font-size: 13.5px; color: var(--gold); font-family: var(--font-heading); font-weight: 700;
+    text-shadow: 0 1px 3px #000, 0 0 10px rgba(255,200,90,.3); margin-bottom: 5px; letter-spacing: 0.6px; }
+  #minimap-holder { position: relative; width: 162px; height: 162px; margin: 37px auto 0; }
+  #minimap { display: block; border-radius: 50%; border: 1px solid #0a0805;
+    box-shadow: 0 4px 14px #000c, inset 0 0 20px #0006; }
+
+  /* ---------- PNG frame slots (optional art overlays) ----------
+     Drop the art files into public/images/hud/ and they appear automatically.
+     Until then these render nothing (no broken-image icons). When you supply the
+     art I'll trim/disable the matching CSS border so they don't double up. */
+  /* minimap ornamental ring -> /images/hud/minimap-frame.png (native 1119x1224, hole ~73%x59%) */
+  #minimap-frame { --mm-fw: 208px; --mm-dx: 2px; --mm-dy: -3px;
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%) translate(var(--mm-dx), var(--mm-dy));
+    width: var(--mm-fw); height: calc(var(--mm-fw) / 0.914);
+    pointer-events: none; z-index: 3; background: 50% 50% / 100% 100% no-repeat url('/images/hud/minimap-frame.png');
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.5)); }
+  /* player portrait ring -> /images/hud/playerframe-portrait.png (native 1108x1169) */
+  #player-frame .portrait { box-shadow: 0 0 0 1px #000, inset 0 0 12px #0009; }
+  #player-frame .portrait-wrap::after { content: ''; --pfp-w: 86px; --pfp-dx: -4px; --pfp-dy: -5px;
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) translate(var(--pfp-dx), var(--pfp-dy));
+    width: var(--pfp-w); height: calc(var(--pfp-w) / 0.948);
+    z-index: 2; pointer-events: none; background: 50% 50% / 100% 100% no-repeat url('/images/hud/playerframe-portrait.png'); }
+  /* player health/resource bar housing -> /images/hud/playerframe-bars.png (native 1724x615) */
+  #player-frame .uf-bars { border: none; border-image: none; box-shadow: none; }
+  #player-frame .uf-bars::before { display: none; }
+  #player-frame .uf-bars::after { content: ''; --pfb-w: 246px; --pfb-h: 116px; --pfb-dx: -2px; --pfb-dy: -2px;
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) translate(var(--pfb-dx), var(--pfb-dy));
+    width: var(--pfb-w); height: var(--pfb-h);
+    z-index: 1; pointer-events: none; background: 50% 50% / 100% 100% no-repeat url('/images/hud/playerframe-bars.png'); }
 
   /* ---------- community HUD ---------- */
-  #community-hud { position: absolute; right: 12px; top: 208px; width: 170px; padding: 7px; display: flex; gap: 6px; z-index: 18; }
+  #community-hud { position: absolute; right: 12px; top: 276px; width: 170px; padding: 7px; display: flex; gap: 6px; z-index: 18; }
   .community-link { flex: 1; min-width: 0; height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 0;
     color: #d8d9ff; text-decoration: none; border: 1px solid #3e4672; border-radius: 6px;
     background: linear-gradient(180deg, #202238ee, #0d0e18ee); box-shadow: inset 0 1px 0 #ffffff16, 0 2px 8px #0008;
@@ -374,6 +469,26 @@
 
   /* ---------- windows ---------- */
   .window { position: absolute; display: none; padding: 12px; z-index: 20; }
+  /* ---- ornate windows: painted 9-slice gold frame (window-border.png) ---- */
+  .window { padding: 8px; }
+  .window.panel {
+    border-style: solid; border-width: 26px;
+    border-image: url('/images/hud/window-border.png') 215 / 26px / 0 stretch;
+    box-shadow: 0 16px 44px #000e, inset 0 0 36px rgba(0,0,0,.5);
+  }
+  /* title sits just inside the painted frame */
+  .window > .panel-title {
+    margin: -2px 0 9px; padding: 0 2px 7px;
+    background: none; border-image: none; border-radius: 0;
+    border-bottom: 1px solid #6b4d19; box-shadow: none;
+  }
+  .spell-icon { border-color: #6b4d19; box-shadow: inset 0 1px 0 rgba(255,235,170,.18); }
+  /* chat pane gets the same painted frame (thinner so the small box keeps room) */
+  #chatlog-frame.panel {
+    border-style: solid; border-width: 20px;
+    border-image: url('/images/hud/window-border.png') 215 / 20px / 0 stretch;
+    box-shadow: 0 14px 40px #000d, inset 0 0 30px rgba(0,0,0,.5);
+  }
   #quest-dialog { left: 50%; top: 14%; transform: translateX(-50%); width: 440px; max-height: 64%; overflow-y: auto; }
   .qd-text { font-size: 12.5px; line-height: 1.55; color: #e8e0c8; margin-bottom: 10px; font-family: Georgia, serif; }
   .qd-sub { font-family: var(--title-font); color: var(--gold); font-size: 13px; margin: 8px 0 4px; }
@@ -438,30 +553,35 @@
   .vendor-item .vi-price { font-size: 11px; color: #ddd; }
   .vendor-hint { font-size: 11px; color: #c8b888; margin-top: 8px; border-top: 1px solid #463a1c; padding-top: 6px; }
 
-  /* bags */
-  #bags { right: 12px; bottom: 64px; width: 310px; max-height: 60%; overflow-y: auto; }
-  .bag-grid { display: flex; flex-direction: column; gap: 2px; }
-  .bag-item { display: flex; gap: 8px; align-items: center; font-size: 12px; padding: 3px 4px; border-radius: 3px; cursor: pointer; }
-  .bag-item:hover { background: #ffffff12; }
-  .bag-item .bi-count { margin-left: auto; color: #ccc; }
-  .money { margin-top: 8px; font-size: 12px; color: var(--gold); text-align: right; }
+  /* bags — WoW-style slot grid */
+  #bags { right: 12px; bottom: 64px; width: 422px; max-height: 72%; overflow-y: auto; }
+  .bag-grid { display: grid; grid-template-columns: repeat(8, 40px); gap: 4px; justify-content: center; }
+  .bag-slot { position: relative; width: 40px; height: 40px; border-radius: 6px;
+    background: linear-gradient(180deg, #1a1410, #0c0906); border: 1px solid #4a3d1d;
+    box-shadow: inset 0 0 9px #000b, inset 0 1px 0 #ffffff0d; cursor: default; }
+  .bag-slot.filled { cursor: pointer; border-color: #6b4d19; }
+  .bag-slot.filled:hover { border-color: var(--gold); box-shadow: 0 0 9px rgba(255,209,0,.4), inset 0 0 9px #000b; }
+  .bag-slot .item-icon { width: 100%; height: 100%; border: none; border-radius: 5px; background: none; object-fit: cover; }
+  .bag-slot .bi-count { position: absolute; right: 3px; bottom: 1px; font-size: 11px; font-weight: bold;
+    color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+  .bag-empty-note { grid-column: 1 / -1; font-size: 12px; color: #887c5c; padding: 4px 2px; }
+  .money { margin-top: 9px; font-size: 12px; color: var(--gold); text-align: right; }
   .coin { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin-left: 6px; margin-right: 2px; }
   .coin.g { background: radial-gradient(circle at 35% 30%, #ffe98a, #b8860b); }
   .coin.s { background: radial-gradient(circle at 35% 30%, #e8e8e8, #888); }
   .coin.c { background: radial-gradient(circle at 35% 30%, #e8a87a, #8b4513); }
 
   /* social: friends / guild / ignore */
-  #social-window { right: 12px; bottom: 12px; width: 348px; height: 560px; max-height: calc(100vh - 24px);
+  #social-window { right: 12px; bottom: 56px; width: 348px; height: 560px; max-height: calc(100vh - 80px);
     display: none; flex-direction: column; }
   #social-window.open { display: flex; }
-  /* friends launcher, pinned bottom-right; hidden while the panel is open */
-  #social-fab { position: absolute; right: 16px; bottom: 16px; width: 46px; height: 46px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 18; padding: 0;
-    background: radial-gradient(circle at 36% 30%, #2c2538, #14101c); border: 2px solid #6f5a2a;
-    box-shadow: 0 3px 10px #000b, inset 0 0 10px #0007; color: #e0c89a; transition: color .12s, border-color .12s, transform .12s; }
-  #social-fab:hover { color: var(--gold); border-color: var(--gold); transform: translateY(-1px); }
-  #social-fab svg { width: 22px; height: 22px; fill: currentColor; }
-  #social-window.open ~ #social-fab { display: none; }
+  /* horizontal micro-menu docked bottom-right (Character / Spellbook / Quest / Map / Bag / Music / Friends) */
+  #micro-menu { position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: row;
+    gap: 5px; z-index: 18; padding: 4px 6px; border-radius: 9px;
+    background: linear-gradient(180deg, #1c1710d8, #0c0805d8);
+    box-shadow: 0 0 0 1px #7c5a22, 0 0 0 2px #000, 0 6px 18px #000b, inset 0 1px 0 rgba(255,235,170,.1); }
+  #social-fab.micro-btn { color: #e0c89a; }
+  #social-fab.micro-btn:hover { color: var(--gold); }
   .soc-realm-tag { color: #7fd4ff; font-size: 11px; font-weight: 400; }
   .soc-tabs { display: flex; gap: 4px; margin: 6px 0 8px; flex: none; }
   .soc-tab { flex: 1; padding: 7px 0; font-size: 13px; font-family: var(--title-font); color: #d8c89a; cursor: pointer;
@@ -2223,10 +2343,343 @@
   }
 
   @media (max-width: 760px) {
-    #community-hud { top: 208px; width: 146px; padding: 6px; gap: 5px; }
+    #community-hud { top: 276px; width: 146px; padding: 6px; gap: 5px; }
     .community-link { height: 32px; }
     .community-link svg { width: 17px; height: 17px; }
-    #quest-tracker { top: 260px; right: 12px; width: 190px; }
+    #quest-tracker { top: 330px; right: 12px; width: 190px; }
+  }
+
+  /* ============================================================== */
+  /* ====== CINEMATIC WELCOME SCENES (login + character select) ==== */
+  /* ============================================================== */
+  @keyframes scSkyShift { 0%,100%{transform:translateX(0) scale(1.05)} 50%{transform:translateX(-2.5%) scale(1.08)} }
+  @keyframes scSunPulse { 0%,100%{opacity:.6;transform:translate(-50%,0) scale(1)} 50%{opacity:.85;transform:translate(-50%,0) scale(1.06)} }
+  @keyframes scRayShimmer { 0%,100%{opacity:.05;transform:translateX(0) skewX(-12deg)} 50%{opacity:.13;transform:translateX(18px) skewX(-12deg)} }
+  @keyframes scFogDrift { 0%{transform:translateX(-6%)} 100%{transform:translateX(6%)} }
+  @keyframes scPortalGlow { 0%,100%{opacity:.55;filter:blur(2px)} 50%{opacity:.8;filter:blur(0)} }
+  @keyframes scEmberRise { 0%{transform:translateY(0) translateX(0);opacity:0} 10%{opacity:1} 55%{transform:translateY(-46vh) translateX(14px);opacity:.85} 90%{opacity:.4} 100%{transform:translateY(-96vh) translateX(-12px);opacity:0} }
+  @keyframes scScreenIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+
+  /* Full-viewport scene container — beats the old grid/media rules via id+class+!important */
+  #login-panel.auth-scene,
+  #charselect-panel.auth-scene,
+  #offline-select.auth-scene {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #050403;
+    box-shadow: none !important;
+    z-index: 141;
+    font-family: 'EB Garamond', serif;
+  }
+  #login-panel.auth-scene[hidden],
+  #charselect-panel.auth-scene[hidden],
+  #offline-select.auth-scene[hidden] { display: none !important; }
+
+  /* ---- background scene layers ---- */
+  .scene-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .scene-sky {
+    position: absolute; inset: 0; transform-origin: center;
+    background: linear-gradient(180deg,#160d2a 0%,#3a1838 22%,#6e2a24 44%,#b04c1e 64%,#e08a2e 80%,#f3c265 96%);
+    animation: scSkyShift 26s ease-in-out infinite;
+  }
+  .scene-sun {
+    position: absolute; left: 50%; top: 38%; width: 760px; height: 420px; transform: translateX(-50%);
+    background: radial-gradient(ellipse at center,rgba(255,210,120,.9),rgba(240,150,50,.4) 38%,transparent 68%);
+    animation: scSunPulse 9s ease-in-out infinite;
+  }
+  .scene-ray { position: absolute; top: -10%; height: 120%; background: linear-gradient(180deg,rgba(255,225,150,.5),transparent); }
+  .scene-ray-1 { left: 30%; width: 90px; animation: scRayShimmer 8s ease-in-out infinite; }
+  .scene-ray-2 { left: 54%; width: 140px; animation: scRayShimmer 11s ease-in-out infinite .8s; }
+  .scene-ray-3 { left: 70%; width: 70px; animation: scRayShimmer 9s ease-in-out infinite 1.6s; }
+  .scene-mtn { position: absolute; bottom: 14%; height: 32%; opacity: .9; }
+  .scene-mtn-l { left: -2%; width: 60%; background: linear-gradient(180deg,#2a1626,#160b1a); clip-path: polygon(0 100%,0 52%,12% 30%,24% 50%,38% 18%,52% 46%,68% 24%,82% 50%,100% 34%,100% 100%); }
+  .scene-mtn-r { right: -2%; width: 58%; background: linear-gradient(180deg,#321a22,#1a0d16); clip-path: polygon(0 100%,0 40%,16% 56%,30% 26%,46% 50%,60% 22%,76% 48%,90% 30%,100% 52%,100% 100%); }
+  .scene-portal {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-52%);
+    width: 440px; height: 560px; border-radius: 210px 210px 26px 26px; overflow: hidden;
+    box-shadow: 0 0 90px 30px rgba(255,190,90,.3);
+  }
+  .scene-portal-vista { position: absolute; inset: 0; background: linear-gradient(180deg,#bfe0f2 0%,#dfeecf 42%,#9fc06a 64%,#5e7a3a 86%,#3a4d24 100%); }
+  .scene-portal-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%,rgba(255,245,210,.7),transparent 60%); animation: scPortalGlow 7s ease-in-out infinite; }
+  .scene-pillar { position: absolute; top: 0; bottom: 0; width: 21%; }
+  .scene-pillar-l { left: 0; background: linear-gradient(90deg,#0a0705 0%,#1a120a 62%,rgba(40,26,12,.2) 100%); box-shadow: inset -2px 0 0 rgba(255,180,80,.12); }
+  .scene-pillar-r { right: 0; background: linear-gradient(270deg,#0a0705 0%,#1a120a 62%,rgba(40,26,12,.2) 100%); box-shadow: inset 2px 0 0 rgba(255,180,80,.12); }
+  .scene-lintel { position: absolute; left: 0; right: 0; top: 0; height: 14%; background: linear-gradient(180deg,#0a0705,#160e08 60%,rgba(30,20,10,.1)); box-shadow: inset 0 -2px 0 rgba(255,180,80,.12); }
+  .scene-fog { position: absolute; left: -10%; right: -10%; bottom: 0; height: 30%; background: linear-gradient(180deg,transparent,rgba(20,10,6,.65)); filter: blur(2px); animation: scFogDrift 22s ease-in-out infinite alternate; }
+  .scene-vignette { position: absolute; inset: 0; box-shadow: inset 0 0 300px 70px rgba(0,0,0,.8); }
+
+  /* floating embers */
+  .scene-embers { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 4; }
+  .scene-embers span {
+    position: absolute; bottom: -24px; width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(255,215,140,.95); box-shadow: 0 0 10px 3px rgba(255,160,50,.55);
+    animation: scEmberRise 11s linear infinite;
+  }
+  .scene-embers span:nth-child(1){left:5%;width:3px;height:3px;animation-duration:9s;animation-delay:-1s}
+  .scene-embers span:nth-child(2){left:13%;animation-duration:12s;animation-delay:-5s}
+  .scene-embers span:nth-child(3){left:21%;width:5px;height:5px;animation-duration:10s;animation-delay:-8s}
+  .scene-embers span:nth-child(4){left:29%;width:2.5px;height:2.5px;animation-duration:13s;animation-delay:-3s}
+  .scene-embers span:nth-child(5){left:37%;animation-duration:8.5s;animation-delay:-6s}
+  .scene-embers span:nth-child(6){left:45%;width:5px;height:5px;animation-duration:11.5s;animation-delay:-2.5s}
+  .scene-embers span:nth-child(7){left:52%;width:3px;height:3px;animation-duration:9.5s;animation-delay:-7s}
+  .scene-embers span:nth-child(8){left:60%;animation-duration:12.5s;animation-delay:-4s}
+  .scene-embers span:nth-child(9){left:67%;width:5px;height:5px;animation-duration:10.5s;animation-delay:-9s}
+  .scene-embers span:nth-child(10){left:74%;width:2.5px;height:2.5px;animation-duration:8s;animation-delay:-1.5s}
+  .scene-embers span:nth-child(11){left:81%;animation-duration:13.5s;animation-delay:-6.5s}
+  .scene-embers span:nth-child(12){left:88%;width:4.5px;height:4.5px;animation-duration:10s;animation-delay:-3.5s}
+  .scene-embers span:nth-child(13){left:94%;width:3px;height:3px;animation-duration:11s;animation-delay:-8.5s}
+  .scene-embers span:nth-child(14){left:48%;width:2.5px;height:2.5px;animation-duration:9s;animation-delay:-5.5s}
+
+  /* ---- corner crest ---- */
+  .scene-crest { position: absolute; left: 34px; top: 28px; z-index: 10; display: flex; align-items: center; gap: 12px; }
+  .scene-crest-mark {
+    width: 46px; height: 46px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg,#1d2a4d,#0c1124); border: 2px solid; border-image: linear-gradient(180deg,#f1d27a,#9c6f24) 1;
+    font-family: 'Cinzel Decorative', serif; font-weight: 900; font-size: 24px; color: #f1d27a; text-shadow: 0 1px 2px #000;
+    box-shadow: 0 0 18px rgba(230,180,80,.4), inset 0 0 12px rgba(0,0,0,.7);
+  }
+  .scene-crest-text { font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 18px; line-height: 1; color: #f3d588; text-shadow: 0 2px 4px #000; }
+  .scene-crest-text small { display: block; font-family: 'Cinzel', serif; font-weight: 500; font-size: 9px; letter-spacing: .42em; color: #caa24a; margin-top: 4px; }
+
+  /* ---- gold-framed card ---- */
+  .scene-card {
+    position: relative; z-index: 20; animation: scScreenIn .55s ease both;
+    background: linear-gradient(180deg,rgba(25,20,13,.96),rgba(13,9,5,.97));
+    border: 1px solid #6b4d19; border-radius: 14px;
+    box-shadow: 0 0 0 1px rgba(241,210,122,.5), 0 0 0 4px rgba(18,12,7,.92), 0 0 0 5px rgba(180,144,47,.45),
+                0 30px 80px rgba(0,0,0,.7), inset 0 0 60px rgba(0,0,0,.55);
+  }
+  .scene-card-login { width: 380px; max-width: 90vw; padding: 30px 32px 26px; text-align: center; }
+  .scene-card-wide { width: min(1180px, 95vw); max-height: 92vh; overflow: auto; padding: 22px 26px; display: flex; flex-direction: column; }
+
+  .scene-card .auth-title {
+    font-family: 'Cinzel Decorative', serif; font-weight: 700; color: #ffe6a6;
+    text-shadow: 0 2px 9px rgba(0,0,0,.9);
+  }
+  .scene-card-login .auth-title { font-size: 24px; margin-bottom: 14px; }
+  .scene-card .auth-copy { color: #b6a888; font-size: 13.5px; line-height: 1.5; margin-bottom: 16px; }
+
+  /* sign-in divider above the Privy widget */
+  .auth-signin-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 14px; }
+  .auth-signin-divider::before, .auth-signin-divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg,transparent,rgba(220,180,100,.45)); }
+  .auth-signin-divider::after { background: linear-gradient(90deg,rgba(220,180,100,.45),transparent); }
+  .auth-signin-divider span { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: .16em; color: #caa24a; }
+  #privy-login-mount { display: flex; justify-content: center; }
+
+  .scene-card input {
+    width: 100%; padding: 12px 15px; border-radius: 7px; border: 1px solid #6b4f1f;
+    background: linear-gradient(180deg,rgba(10,7,3,.85),rgba(22,16,9,.85));
+    color: #f4ead0; font-family: 'EB Garamond', serif; font-size: 16px; text-align: center;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.7); transition: border-color .15s, box-shadow .15s;
+  }
+  .scene-card input:focus-visible { border-color: #e8c873; box-shadow: inset 0 2px 8px rgba(0,0,0,.7), 0 0 14px rgba(232,200,115,.4); outline: none; }
+
+  /* ---- character-select header + 3-column layout ---- */
+  .cs-head { text-align: center; margin-bottom: 14px; }
+  .cs-head .auth-title { font-size: 20px; margin-bottom: 4px; }
+  .cs-section-label { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: .18em; color: #caa24a; margin: 4px 0 10px; }
+
+  .charselect-layout.cs3 { display: flex; flex-direction: column; gap: 18px; width: 100%; }
+  .charselect-col-center { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  @media (min-width: 900px) {
+    /* Stable window: fixed card height so switching class never resizes it */
+    .scene-card-wide { height: min(820px, 90vh); max-height: 90vh; overflow: hidden; }
+    .charselect-layout.cs3 {
+      display: grid !important;
+      grid-template-columns: 272px minmax(300px, 1fr) 304px !important;
+      gap: 22px !important; align-items: stretch;
+      flex: 1 1 auto; min-height: 0;
+    }
+    .scene-card-wide .charselect-col-left,
+    .scene-card-wide .charselect-col-center,
+    .scene-card-wide .charselect-col-right { min-height: 0; height: 100%; }
+    /* Class info varies in length per class — let it scroll inside instead of growing the window */
+    .scene-card-wide .charselect-col-right { overflow: hidden; }
+    .cs3 .class-details-panel { height: 100% !important; overflow-y: auto; overflow-x: hidden; }
+  }
+
+  .cs3 .mini-class-row { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; padding: 0; }
+  /* Pack the left column to the top (kill the old space-between gap) */
+  .cs3 .charselect-col-left { justify-content: flex-start !important; gap: 2px; }
+  .cs3 .charselect-col-left #char-list,
+  .cs3 .charselect-col-left #offline-char-list {
+    max-height: min(52vh, 420px) !important;
+    margin-bottom: 18px;
+  }
+
+  /* Saved-character rows: stack vertically so they fit the narrow left column */
+  .cs3 .char-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(241,210,122,.16);
+    border-bottom: 1px solid rgba(241,210,122,.16);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(28,21,12,.55), rgba(14,10,6,.55));
+  }
+  .cs3 .char-row:last-child { margin-bottom: 0; }
+  .cs3 .char-row.sel { border-color: rgba(241,210,122,.6); }
+  .cs3 .char-row .char-name { min-width: 0; font-size: 15px; }
+  .cs3 .char-row .char-sub { flex: none; line-height: 1.35; }
+  .cs3 .char-row .char-actions { display: flex; gap: 8px; width: 100%; }
+  .cs3 .char-row .char-actions .btn {
+    flex: 1; min-width: 0; padding: 7px 6px; text-align: center; white-space: nowrap;
+  }
+  .cs3 .char-row .rename-input { width: 100%; max-width: 100%; }
+
+  /* portal-framed live preview */
+  .char-portal {
+    width: 300px !important; max-width: 100%; height: 380px !important;
+    border-radius: 180px 180px 18px 18px !important; border: none !important;
+    background: radial-gradient(ellipse at 50% 32%, rgba(255,225,150,.16), rgba(20,13,7,.85) 62%, rgba(8,5,3,.96)) !important;
+    box-shadow: 0 24px 60px rgba(0,0,0,.6), inset 0 0 60px rgba(0,0,0,.5), 0 0 0 2px rgba(241,210,122,.4), 0 0 0 5px rgba(20,14,8,.85) !important;
+  }
+  .char-portal canvas { border-radius: inherit; }
+
+  .charselect-col-center .char-create { width: 300px; max-width: 100%; display: flex; flex-direction: column; gap: 0; }
+  .charselect-col-center .auth-label { display: block; text-align: center; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: .14em; color: #caa24a; margin-bottom: 8px; }
+  .charselect-col-center .char-input-group { max-width: 100%; margin: 0 0 14px; }
+  .charselect-col-center .auth-actions { display: flex; gap: 12px; justify-content: center; }
+
+  .cs3 .class-details-panel { height: auto !important; margin: 0 !important; }
+  @media (max-width: 899px) {
+    .char-portal { height: 320px !important; }
+    .scene-card-wide { padding: 18px 16px; }
+  }
+
+  /* ============================================================== */
+  /* ===== CHARACTER CREATOR — 3 floating panels (mockup look) ===== */
+  /* ============================================================== */
+  .auth-scene.cc-scene { align-items: stretch !important; }
+  .cc-layout {
+    position: relative; z-index: 20; flex: 1 1 auto; width: 100%; height: 100%;
+    display: grid; grid-template-columns: 352px minmax(0, 1fr) 388px; gap: 20px;
+    padding: 14px 20px; box-sizing: border-box;
+  }
+  .cc-panel {
+    display: flex; flex-direction: column; min-height: 0;
+    border-radius: 0; padding: 8px 10px;
+    background: linear-gradient(180deg, rgba(22,17,10,.95), rgba(12,9,5,.97));
+    border-style: solid; border-width: 22px;
+    border-image: url('/images/hud/window-border.png') 215 / 22px / 0 stretch;
+    box-shadow: 0 24px 60px rgba(0,0,0,.6), inset 0 0 50px rgba(0,0,0,.55);
+    animation: scScreenIn .5s ease both;
+  }
+  .cc-left { gap: 8px; overflow: hidden; }
+  .cc-right { padding: 0; overflow: hidden; }
+  .cc-right .class-details-panel { height: 100% !important; margin: 0 !important; overflow-y: auto; overflow-x: hidden; padding: 18px 16px; }
+  .cc-center {
+    position: relative; z-index: auto; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end; gap: 8px; min-height: 0; padding: 6px 0 4px;
+    /* NO transform/animation here: an identity-matrix transform (left by a
+       `both`-filled keyframe) makes the fixed full-screen preview canvas a
+       containing block of this column, pushing it off-centre. */
+  }
+
+  /* crest */
+  .cc-crest { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .cc-crest .scene-crest-mark { width: 34px; height: 34px; font-size: 18px; border-radius: 8px; }
+  .cc-crest-title { font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 16px; color: #f3d588; line-height: 1; text-shadow: 0 2px 4px #000; }
+  .cc-crest-title small { display: block; font-family: 'Cinzel', serif; font-weight: 500; font-size: 8px; letter-spacing: .3em; color: #caa24a; margin-top: 3px; }
+
+  /* online account row */
+  .cc-account { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #b6a888; margin-bottom: 2px; }
+  .cc-account-name { font-family: 'Cinzel', serif; }
+  .cc-account .btn-small { align-self: flex-start; margin-top: 4px; }
+
+  /* circular class icons */
+  .cc-class-grid { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 0 0 4px; padding: 0; list-style: none; }
+  .cc-class-grid .mini-class {
+    position: relative; aspect-ratio: 1; min-width: 0; margin: 0; padding: 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    border-radius: 9px; border: 1px solid #3a2e18; cursor: pointer;
+    background: linear-gradient(180deg, #1a140b, #0e0a06);
+    transition: border-color .15s, box-shadow .15s, transform .1s;
+  }
+  .cc-class-grid .mini-class::before { content: none !important; }
+  .cc-class-grid .mini-class:hover { border-color: #caa24a; }
+  .cc-class-grid .mini-class:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+  .cc-class-grid .cc-class-ico {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 35% 30%, #2a2214, #100b06);
+    border: 2px solid var(--class-color, #caa24a);
+    color: #e8d4a0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; line-height: 1;
+    box-shadow: 0 0 8px rgba(0,0,0,.6);
+  }
+  .cc-class-grid .cc-class-name { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: .04em; color: #a3936c; text-transform: uppercase; text-align: center; }
+  .cc-class-grid .mini-class.sel { border-color: #f1d27a; box-shadow: 0 0 14px rgba(241,210,122,.55), inset 0 0 12px rgba(241,210,122,.18); }
+  .cc-class-grid .mini-class.sel .cc-class-name { color: #ffe9ad; }
+
+  /* saved-character list inside the left panel */
+  .cc-charlist {
+    list-style: none; margin: 0 !important; padding: 0 !important;
+    border: none !important; background: none !important;
+    max-height: none !important; min-height: 40px; flex: 1 1 auto; overflow-y: auto;
+  }
+  .cc-panel .char-row {
+    flex-direction: column; align-items: stretch; gap: 7px;
+    padding: 9px 11px; margin-bottom: 7px;
+    border: 1px solid rgba(241,210,122,.16); border-radius: 8px;
+    background: linear-gradient(180deg, rgba(28,21,12,.55), rgba(14,10,6,.55));
+  }
+  .cc-panel .char-row:last-child { margin-bottom: 0; }
+  .cc-panel .char-row.sel { border-color: rgba(241,210,122,.6); }
+  .cc-panel .char-row .char-name { min-width: 0; font-size: 14px; }
+  .cc-panel .char-row .char-sub { flex: none; line-height: 1.35; font-size: 11px; }
+  .cc-panel .char-row .char-actions { display: flex; gap: 7px; width: 100%; }
+  .cc-panel .char-row .char-actions .btn { flex: 1; min-width: 0; padding: 6px 5px; font-size: 11px; text-align: center; white-space: nowrap; margin: 0; }
+  .cc-panel .char-row .rename-input { width: 100%; max-width: 100%; }
+  .cc-charlist .char-list-message { color: #8c7c58; font-size: 12px; padding: 6px 2px; list-style: none; }
+
+  .cc-disclaimer { margin-top: 8px; font-size: 10.5px; line-height: 1.4; color: #8a7a52; font-family: 'EB Garamond', serif; }
+
+  /* full-screen diorama: the 3D scene fills the whole tab, behind the panels */
+  .cc-center .char-portal {
+    position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important;
+    flex: none !important; max-width: none !important; min-height: 0 !important; z-index: 1 !important;
+    border: none !important; border-radius: 0 !important; box-shadow: none !important; overflow: visible !important;
+    background: none !important;
+  }
+  /* panels + create form float above the full-screen diorama */
+  .cc-panel { position: relative; z-index: 30; }
+  .cc-center .cc-create, .cc-caption { position: relative; z-index: 30; }
+  .cc-caption { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: .08em; color: #8a7a52; }
+  /* override old 2-ID `.char-create { flex-grow:1; justify-content:space-between }` that pushed buttons to the bottom */
+  .cc-center .cc-create {
+    width: 340px; max-width: 100%; display: flex; flex-direction: column; gap: 0;
+    flex: 0 0 auto !important; justify-content: flex-start !important;
+    border-top: none !important; padding-top: 0 !important;
+  }
+  .cc-create .char-input-group { max-width: 100%; margin: 0 0 14px; }
+  .cc-create .auth-actions { display: flex; gap: 12px; justify-content: center; }
+
+  /* narrow screens: stack the three panels and let the scene scroll */
+  @media (max-width: 1040px) {
+    .auth-scene.cc-scene { align-items: flex-start !important; overflow-y: auto; }
+    .cc-layout { grid-template-columns: 1fr; height: auto; gap: 16px; padding: 16px; }
+    .cc-right .class-details-panel { overflow: visible; height: auto !important; }
+    .cc-charlist { max-height: 240px !important; }
+    .cc-center .char-portal { width: 300px !important; height: 380px !important; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene-sky, .scene-sun, .scene-ray, .scene-portal-glow, .scene-fog, .scene-embers span, .scene-card, .cc-panel, .cc-center { animation: none !important; }
   }
 </style>
 </head>
@@ -2274,7 +2727,10 @@
 
     <div id="minimap-wrap">
       <div id="zone-label">Eastbrook Vale</div>
-      <canvas id="minimap" width="162" height="162"></canvas>
+      <div id="minimap-holder">
+        <canvas id="minimap" width="162" height="162"></canvas>
+        <div id="minimap-frame"></div>
+      </div>
     </div>
 
     <div id="community-hud" class="panel" aria-label="Community links">
@@ -2295,14 +2751,6 @@
         <div id="actionbar-stack">
           <div id="xpbar"><div class="fill"></div><div class="ticks"></div><div class="label"></div></div>
           <div id="actionbar" class="panel"></div>
-        </div>
-        <div id="side-buttons">
-          <button class="micro-btn" id="mm-char" title="Character Info">C<span class="keybind">c</span></button>
-          <button class="micro-btn" id="mm-spell" title="Spellbook">S<span class="keybind">p</span></button>
-          <button class="micro-btn" id="mm-quest" title="Quest Log">Q<span class="keybind">l</span></button>
-          <button class="micro-btn" id="mm-map" title="World Map">M<span class="keybind">m</span></button>
-          <button class="micro-btn" id="mm-bag" title="Bags">B<span class="keybind">b</span></button>
-          <button class="micro-btn" id="mm-music" title="Toggle Music">♪</button>
         </div>
         <div id="meters-window" class="panel">
           <div class="panel-title">
@@ -2346,9 +2794,34 @@
     <div id="options-menu" class="window panel"></div>
     <div id="social-window" class="window panel"></div>
     <div id="report-window" class="window panel"></div>
-    <button id="social-fab" title="Friends &amp; Guild (O)" aria-label="Friends &amp; Guild">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-    </button>
+    <div id="micro-menu" aria-label="Menu">
+      <button class="micro-btn" id="mm-char" title="Character Info (C)" aria-label="Character Info">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
+        <span class="keybind">c</span>
+      </button>
+      <button class="micro-btn" id="mm-spell" title="Spellbook (P)" aria-label="Spellbook">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.6C10.2 5.3 7.3 4.6 4 5v13c3.3-.4 6.2.3 8 1.6 1.8-1.3 4.7-2 8-1.6V5c-3.3-.4-6.2.3-8 1.6Z"/><path d="M12 6.6V19.6"/></svg>
+        <span class="keybind">p</span>
+      </button>
+      <button class="micro-btn" id="mm-quest" title="Quest Log (L)" aria-label="Quest Log">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+        <span class="keybind">l</span>
+      </button>
+      <button class="micro-btn" id="mm-map" title="World Map (M)" aria-label="World Map">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.2v14L9 18l6 2.2 6-2.2v-14L15 6 9 4Z"/><path d="M9 4v14M15 6v14"/></svg>
+        <span class="keybind">m</span>
+      </button>
+      <button class="micro-btn" id="mm-bag" title="Bags (B)" aria-label="Bags">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h12l-1 11H7L6 9Z"/><path d="M9 9a3 3 0 0 1 6 0"/><path d="M6 13.5h12"/></svg>
+        <span class="keybind">b</span>
+      </button>
+      <button class="micro-btn" id="mm-music" title="Toggle Music" aria-label="Toggle Music">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+      </button>
+      <button class="micro-btn" id="social-fab" title="Friends &amp; Guild (O)" aria-label="Friends &amp; Guild">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.1 2.7-5 6-5s6 1.9 6 5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.2"/><path d="M17.2 14.2c2.2.5 3.8 2.2 3.8 4.8"/></svg>
+      </button>
+    </div>
     <div id="tooltip" class="panel"></div>
 
     <div id="error-msg"></div>
@@ -2408,15 +2881,45 @@
       <div id="performance-tip"><b>TIP:</b> For the smoothest experience, turn off ad blocker extensions on this site. Community reports found some blockers can cause lag.</div>
     </div>
 
-    <form id="login-panel" class="panel auth-panel auth-panel-premium" hidden novalidate>
-      <h2 class="auth-title">Enter the Realm</h2>
-      <p class="auth-copy">Login with X / Twitter, email, or a Solana wallet through Privy. Online characters are server-only and stay tied to that same Privy wallet identity.</p>
+    <form id="login-panel" class="panel auth-scene" hidden novalidate>
+      <div class="scene-bg" aria-hidden="true">
+        <div class="scene-sky"></div>
+        <div class="scene-sun"></div>
+        <div class="scene-ray scene-ray-1"></div>
+        <div class="scene-ray scene-ray-2"></div>
+        <div class="scene-ray scene-ray-3"></div>
+        <div class="scene-mtn scene-mtn-l"></div>
+        <div class="scene-mtn scene-mtn-r"></div>
+        <div class="scene-portal"><span class="scene-portal-vista"></span><span class="scene-portal-glow"></span></div>
+        <div class="scene-pillar scene-pillar-l"></div>
+        <div class="scene-pillar scene-pillar-r"></div>
+        <div class="scene-lintel"></div>
+        <div class="scene-fog"></div>
+        <div class="scene-embers">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span>
+        </div>
+        <div class="scene-vignette"></div>
+      </div>
 
-      <div id="login-error" class="auth-error" aria-live="polite"></div>
-      <div id="privy-login-mount"></div>
-      
-      <div class="auth-actions">
-        <button type="button" class="btn btn-back" id="btn-login-back">Back</button>
+      <div class="scene-crest" aria-hidden="true">
+        <span class="scene-crest-mark">V</span>
+        <span class="scene-crest-text">VAELORIA<small>&middot; CLASSIC &middot;</small></span>
+      </div>
+
+      <div class="scene-card scene-card-login">
+        <h2 class="auth-title">Enter the Realm</h2>
+        <p class="auth-copy">Login with X / Twitter, email, or a Solana wallet through Privy. Online characters are server-only and stay tied to that same Privy wallet identity.</p>
+
+        <div id="login-error" class="auth-error" aria-live="polite"></div>
+
+        <div class="auth-signin-divider"><span>SIGN IN WITH</span></div>
+        <div id="privy-login-mount"></div>
+
+        <div class="auth-actions">
+          <button type="button" class="btn btn-back" id="btn-login-back">Back</button>
+        </div>
       </div>
     </form>
 
@@ -2428,83 +2931,122 @@
       </div>
     </div>
 
-    <div id="charselect-panel" class="panel auth-panel auth-panel-premium" hidden>
-      <h2 class="auth-title">Online Characters: <span id="charselect-user" class="gold"></span></h2>
-      <div class="cs-realm" id="charselect-realm"></div>
-      <div class="cs-realm">Server characters · blockchain/market/trade enabled · never shared with Offline Solo</div>
-      <button type="button" class="btn btn-secondary btn-small" id="btn-change-realm">Change Realm</button>
-      <div class="charselect-layout">
-        <!-- Left Column: Character List & Creation Controls -->
-        <div class="charselect-col-left">
-          <ul id="char-list" role="list"></ul>
-          <div class="char-create">
-            <label for="new-char-name" class="auth-label">Create Online Character</label>
-            <div class="char-input-group">
-              <input id="new-char-name" maxlength="16" placeholder="Character Name" aria-describedby="charselect-error" autocomplete="off" />
-              <div id="charselect-error" class="auth-error" aria-live="polite"></div>
-            </div>
-            <ul class="mini-class-row" role="list">
-              <li class="mini-class" data-class="warrior" role="button" tabindex="0" aria-label="Warrior class" aria-pressed="false">Warrior</li>
-              <li class="mini-class" data-class="paladin" role="button" tabindex="0" aria-label="Paladin class" aria-pressed="false">Paladin</li>
-              <li class="mini-class" data-class="hunter" role="button" tabindex="0" aria-label="Hunter class" aria-pressed="false">Hunter</li>
-              <li class="mini-class" data-class="rogue" role="button" tabindex="0" aria-label="Rogue class" aria-pressed="false">Rogue</li>
-              <li class="mini-class" data-class="priest" role="button" tabindex="0" aria-label="Priest class" aria-pressed="false">Priest</li>
-              <li class="mini-class" data-class="shaman" role="button" tabindex="0" aria-label="Shaman class" aria-pressed="false">Shaman</li>
-              <li class="mini-class" data-class="mage" role="button" tabindex="0" aria-label="Mage class" aria-pressed="false">Mage</li>
-              <li class="mini-class" data-class="warlock" role="button" tabindex="0" aria-label="Warlock class" aria-pressed="false">Warlock</li>
-              <li class="mini-class" data-class="druid" role="button" tabindex="0" aria-label="Druid class" aria-pressed="false">Druid</li>
-            </ul>
-            <div class="auth-actions">
-              <button class="btn btn-primary" id="btn-create-char">Create</button>
-              <button class="btn btn-secondary" id="btn-charselect-back">Back</button>
-            </div>
-          </div>
+    <div id="charselect-panel" class="panel auth-scene" hidden>
+      <div class="scene-bg" aria-hidden="true">
+        <div class="scene-sky"></div>
+        <div class="scene-sun"></div>
+        <div class="scene-embers">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span>
         </div>
-        <!-- Right Column: Detailed Class Info & Preview -->
-        <div class="charselect-col-right">
-          <div class="char-preview-container" id="online-preview-container">
+        <div class="scene-vignette"></div>
+      </div>
+
+      <div class="cc-layout">
+        <!-- LEFT PANEL: crest + account/realm + class grid + saved characters -->
+        <aside class="cc-panel cc-left">
+          <div class="cc-crest"><span class="scene-crest-mark">V</span><span class="cc-crest-title">VAELORIA<small>ONLINE</small></span></div>
+          <div class="cc-account">
+            <span class="cc-account-name">Account: <span id="charselect-user" class="gold"></span></span>
+            <span class="cs-realm" id="charselect-realm"></span>
+            <button type="button" class="btn btn-secondary btn-small" id="btn-change-realm">Change Realm</button>
+          </div>
+          <div class="cs-section-label">Choose Your Class</div>
+          <ul class="mini-class-row cc-class-grid" role="list">
+            <li class="mini-class" data-class="warrior" role="button" tabindex="0" aria-label="Warrior class" aria-pressed="false"><span class="cc-class-ico">W</span><span class="cc-class-name">Warrior</span></li>
+            <li class="mini-class" data-class="paladin" role="button" tabindex="0" aria-label="Paladin class" aria-pressed="false"><span class="cc-class-ico">P</span><span class="cc-class-name">Paladin</span></li>
+            <li class="mini-class" data-class="hunter" role="button" tabindex="0" aria-label="Hunter class" aria-pressed="false"><span class="cc-class-ico">H</span><span class="cc-class-name">Hunter</span></li>
+            <li class="mini-class" data-class="rogue" role="button" tabindex="0" aria-label="Rogue class" aria-pressed="false"><span class="cc-class-ico">R</span><span class="cc-class-name">Rogue</span></li>
+            <li class="mini-class" data-class="priest" role="button" tabindex="0" aria-label="Priest class" aria-pressed="false"><span class="cc-class-ico">Pr</span><span class="cc-class-name">Priest</span></li>
+            <li class="mini-class" data-class="shaman" role="button" tabindex="0" aria-label="Shaman class" aria-pressed="false"><span class="cc-class-ico">S</span><span class="cc-class-name">Shaman</span></li>
+            <li class="mini-class" data-class="mage" role="button" tabindex="0" aria-label="Mage class" aria-pressed="false"><span class="cc-class-ico">M</span><span class="cc-class-name">Mage</span></li>
+            <li class="mini-class" data-class="warlock" role="button" tabindex="0" aria-label="Warlock class" aria-pressed="false"><span class="cc-class-ico">Wl</span><span class="cc-class-name">Warlock</span></li>
+            <li class="mini-class" data-class="druid" role="button" tabindex="0" aria-label="Druid class" aria-pressed="false"><span class="cc-class-ico">D</span><span class="cc-class-name">Druid</span></li>
+          </ul>
+          <div class="cs-section-label">Your Characters</div>
+          <ul id="char-list" class="cc-charlist" role="list"></ul>
+          <div class="cc-disclaimer">Server characters · blockchain/market/trade enabled · never shared with Offline Solo</div>
+        </aside>
+
+        <!-- CENTER (frameless): portal preview + name + actions -->
+        <div class="cc-center">
+          <div class="char-preview-container char-portal" id="online-preview-container">
             <canvas id="char-preview-canvas"></canvas>
           </div>
-          <div id="online-class-details" class="class-details-panel" aria-live="polite"></div>
+          <div class="cc-caption">[ character render &mdash; drag to rotate ]</div>
+          <div class="char-create cc-create">
+            <div class="char-input-group">
+              <input id="new-char-name" maxlength="16" placeholder="Character Name" aria-label="New character name" aria-describedby="charselect-error" autocomplete="off" />
+              <div id="charselect-error" class="auth-error" aria-live="polite"></div>
+            </div>
+            <div class="auth-actions">
+              <button class="btn btn-secondary" id="btn-charselect-back">Back</button>
+              <button class="btn btn-primary" id="btn-create-char">Create</button>
+            </div>
+          </div>
         </div>
+
+        <!-- RIGHT PANEL: class lore + stats + abilities -->
+        <aside class="cc-panel cc-right">
+          <div id="online-class-details" class="class-details-panel" aria-live="polite"></div>
+        </aside>
       </div>
     </div>
 
-    <div id="offline-select" class="panel auth-panel auth-panel-premium" hidden>
-      <h2 class="auth-title">Offline Solo Characters</h2>
-      <div class="cs-realm">Local saves only on this browser/device · no blockchain · no player market · cannot be used online</div>
-      <div class="charselect-layout">
-        <!-- Left Column: Character Name & Class Chips & Actions -->
-        <div class="charselect-col-left">
-          <ul id="offline-char-list" role="list"></ul>
-          <div class="char-create">
-            <label for="char-name" class="auth-label">Create Local Solo Character</label>
+    <div id="offline-select" class="panel auth-scene" hidden>
+      <div class="scene-bg" aria-hidden="true">
+        <div class="scene-sky"></div>
+        <div class="scene-sun"></div>
+        <div class="scene-embers">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span>
+        </div>
+        <div class="scene-vignette"></div>
+      </div>
+
+      <div class="cc-layout">
+        <!-- LEFT PANEL: crest + class grid + saved characters -->
+        <aside class="cc-panel cc-left">
+          <div class="cc-crest"><span class="scene-crest-mark">V</span><span class="cc-crest-title">VAELORIA<small>OFFLINE SOLO</small></span></div>
+          <div class="cs-section-label">Choose Your Class</div>
+          <ul class="mini-class-row cc-class-grid" role="list">
+            <li class="mini-class" data-class="warrior" role="button" tabindex="0" aria-label="Warrior class" aria-pressed="false"><span class="cc-class-ico">W</span><span class="cc-class-name">Warrior</span></li>
+            <li class="mini-class" data-class="paladin" role="button" tabindex="0" aria-label="Paladin class" aria-pressed="false"><span class="cc-class-ico">P</span><span class="cc-class-name">Paladin</span></li>
+            <li class="mini-class" data-class="hunter" role="button" tabindex="0" aria-label="Hunter class" aria-pressed="false"><span class="cc-class-ico">H</span><span class="cc-class-name">Hunter</span></li>
+            <li class="mini-class" data-class="rogue" role="button" tabindex="0" aria-label="Rogue class" aria-pressed="false"><span class="cc-class-ico">R</span><span class="cc-class-name">Rogue</span></li>
+            <li class="mini-class" data-class="priest" role="button" tabindex="0" aria-label="Priest class" aria-pressed="false"><span class="cc-class-ico">Pr</span><span class="cc-class-name">Priest</span></li>
+            <li class="mini-class" data-class="shaman" role="button" tabindex="0" aria-label="Shaman class" aria-pressed="false"><span class="cc-class-ico">S</span><span class="cc-class-name">Shaman</span></li>
+            <li class="mini-class" data-class="mage" role="button" tabindex="0" aria-label="Mage class" aria-pressed="false"><span class="cc-class-ico">M</span><span class="cc-class-name">Mage</span></li>
+            <li class="mini-class" data-class="warlock" role="button" tabindex="0" aria-label="Warlock class" aria-pressed="false"><span class="cc-class-ico">Wl</span><span class="cc-class-name">Warlock</span></li>
+            <li class="mini-class" data-class="druid" role="button" tabindex="0" aria-label="Druid class" aria-pressed="false"><span class="cc-class-ico">D</span><span class="cc-class-name">Druid</span></li>
+          </ul>
+          <div class="cs-section-label">Your Characters</div>
+          <ul id="offline-char-list" class="cc-charlist" role="list"></ul>
+          <div class="cc-disclaimer">Local saves only on this browser/device · no blockchain · no market · cannot be used online</div>
+        </aside>
+
+        <!-- CENTER (frameless): portal preview + name + actions -->
+        <div class="cc-center">
+          <div class="char-preview-container char-portal" id="offline-preview-container"></div>
+          <div class="cc-caption">[ character render &mdash; drag to rotate ]</div>
+          <div class="char-create cc-create">
             <div class="char-input-group">
-              <input id="char-name" maxlength="16" placeholder="Character name" value="" aria-describedby="offline-error" autocomplete="off" />
+              <input id="char-name" maxlength="16" placeholder="Character name" value="" aria-label="Character name" aria-describedby="offline-error" autocomplete="off" />
               <div id="offline-error" class="auth-error" aria-live="polite"></div>
             </div>
-            <ul class="mini-class-row" role="list">
-              <li class="mini-class" data-class="warrior" role="button" tabindex="0" aria-label="Warrior class" aria-pressed="false">Warrior</li>
-              <li class="mini-class" data-class="paladin" role="button" tabindex="0" aria-label="Paladin class" aria-pressed="false">Paladin</li>
-              <li class="mini-class" data-class="hunter" role="button" tabindex="0" aria-label="Hunter class" aria-pressed="false">Hunter</li>
-              <li class="mini-class" data-class="rogue" role="button" tabindex="0" aria-label="Rogue class" aria-pressed="false">Rogue</li>
-              <li class="mini-class" data-class="priest" role="button" tabindex="0" aria-label="Priest class" aria-pressed="false">Priest</li>
-              <li class="mini-class" data-class="shaman" role="button" tabindex="0" aria-label="Shaman class" aria-pressed="false">Shaman</li>
-              <li class="mini-class" data-class="mage" role="button" tabindex="0" aria-label="Mage class" aria-pressed="false">Mage</li>
-              <li class="mini-class" data-class="warlock" role="button" tabindex="0" aria-label="Warlock class" aria-pressed="false">Warlock</li>
-              <li class="mini-class" data-class="druid" role="button" tabindex="0" aria-label="Druid class" aria-pressed="false">Druid</li>
-            </ul>
             <div class="auth-actions">
-              <button type="button" class="btn btn-primary" id="btn-start-offline">Enter World</button>
               <button type="button" class="btn btn-secondary" id="btn-offline-back">Back</button>
+              <button type="button" class="btn btn-primary" id="btn-start-offline">Enter World</button>
             </div>
           </div>
         </div>
-        <!-- Right Column: Detailed Class Info & Preview -->
-        <div class="charselect-col-right">
-          <div class="char-preview-container" id="offline-preview-container"></div>
+
+        <!-- RIGHT PANEL: class lore + stats + abilities -->
+        <aside class="cc-panel cc-right">
           <div id="offline-class-details" class="class-details-panel" aria-live="polite"></div>
-        </div>
+        </aside>
       </div>
     </div>
 
