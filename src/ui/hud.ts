@@ -998,7 +998,7 @@ export class Hud {
     // The painted base (MAPBASE.png) already carries the vale's title + POI
     // labels, so when it's available for the outdoor vale we draw it and skip
     // the procedural terrain + baked-in text below.
-    const useImg = !!this.mapImage && this.mapImage.complete && this.mapImage.naturalWidth > 0 && zone.name === 'Eastbrook Vale';
+    const useImg = false; // labels are dynamic now; the old painted base contains legacy place names
     ctx.imageSmoothingEnabled = true;
     if (useImg) {
       ctx.clearRect(0, 0, S, S);

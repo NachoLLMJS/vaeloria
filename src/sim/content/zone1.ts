@@ -1,4 +1,4 @@
-// Zone 1 — Eastbrook Vale (levels 1-7). The starter zone: town of Eastbrook,
+// Zone 1 — Dawnmere Vale (levels 1-7). The starter zone: town of Dawnmere,
 // wolves and boars, the bandit camp, and Brother Aldric's Gravecaller chain
 // leading to the Hollow Crypt.
 
@@ -16,25 +16,25 @@ export const LAKE = { x: -92, z: 88, radius: 30 };
 
 export const ZONE1_ZONE: ZoneDef = {
   id: 'eastbrook_vale',
-  name: 'Eastbrook Vale',
+  name: 'Dawnmere Vale',
   zMin: -180,
   zMax: 180,
   levelRange: [1, 7],
   biome: 'vale',
-  hub: { x: 0, z: 0, radius: TOWN_RADIUS, name: 'Eastbrook' },
+  hub: { x: 0, z: 0, radius: TOWN_RADIUS, name: 'Dawnmere' },
   graveyard: GRAVEYARD_POS,
   lakes: [LAKE],
   pois: [
-    { x: 0, z: -3, label: 'Eastbrook' },
-    { x: -2, z: 70, label: 'Wolf Run' },
-    { x: 65, z: 0, label: 'Boar Meadow' },
-    { x: -88, z: 82, label: 'Mirror Lake' },
-    { x: -60, z: 4, label: 'Webwood' },
-    { x: -84, z: -64, label: 'Copper Dig' },
-    { x: 76, z: -76, label: 'Bandit Camp' },
-    { x: 80, z: 80, label: 'Fallen Chapel' },
+    { x: 0, z: -3, label: 'Dawnmere' },
+    { x: -2, z: 70, label: 'Moonwolf Run' },
+    { x: 65, z: 0, label: 'Sunboar Meadow' },
+    { x: -88, z: 82, label: 'Starfall Lake' },
+    { x: -60, z: 4, label: 'Silkshade Grove' },
+    { x: -84, z: -64, label: 'Embervein Dig' },
+    { x: 76, z: -76, label: 'Ravenknife Camp' },
+    { x: 80, z: 80, label: 'Moonveil Chapel' },
   ],
-  welcome: 'Find Marshal Redbrook in town — he has work for you.',
+  welcome: 'Find Marshal Ardent in town — he has work for you.',
 };
 
 // ---------------------------------------------------------------------------
@@ -75,7 +75,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
     scale: 0.85, color: 0x935116,
   },
   webwood_spider: {
-    id: 'webwood_spider', name: 'Webwood Spiker', minLevel: 2, maxLevel: 4, family: 'spider',
+    id: 'webwood_spider', name: 'Silkshade Grove Spiker', minLevel: 2, maxLevel: 4, family: 'spider',
     hpBase: 30, hpPerLevel: 15, dmgBase: 4, dmgPerLevel: 1.7, attackSpeed: 1.8,
     armorPerLevel: 8, moveSpeed: 8, aggroRadius: 10,
     loot: [
@@ -150,7 +150,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 
 export const ZONE1_NPCS: Record<string, NpcDef> = {
   marshal_redbrook: {
-    id: 'marshal_redbrook', name: 'Marshal Redbrook', title: 'Town Marshal',
+    id: 'marshal_redbrook', name: 'Marshal Ardent', title: 'Town Marshal',
     // Open central plaza, pulled away from the castle-town house footprints.
     pos: { x: -16, z: 11 }, facing: facePoint({ x: -16, z: 11 }, EASTBROOK_CAMPFIRE), color: 0xb7950b,
     questIds: ['q_wolves', 'q_greyjaw', 'q_bandits', 'q_ringleader'],
@@ -193,7 +193,7 @@ export const ZONE1_NPCS: Record<string, NpcDef> = {
   },
   fisherman_brandt: {
     id: 'fisherman_brandt', name: 'Fisherman Brandt', title: 'Old Salt',
-    // in town (east edge, glaring out at Mirror Lake) — his old spot by the
+    // in town (east edge, glaring out at Starfall Lake) — his old spot by the
     // dock sat inside the Mudfin spawn radius and new players got ambushed
     // walking up to a quest giver
     pos: { x: -16, z: 6 }, facing: facePoint({ x: -16, z: 6 }, EASTBROOK_CAMPFIRE), color: 0x2471a3,
@@ -218,7 +218,7 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
   q_wolves: {
     id: 'q_wolves', name: 'Wolves at the Door',
     giverNpcId: 'marshal_redbrook', turnInNpcId: 'marshal_redbrook',
-    text: 'The forest wolves grow bold, snapping at travelers on the north road. Thin their numbers, $N. Slay 8 Forest Wolves and Eastbrook will breathe easier.',
+    text: 'The forest wolves grow bold, snapping at travelers on the north road. Thin their numbers, $N. Slay 8 Forest Wolves and Dawnmere will breathe easier.',
     completionText: 'Fine work. The road feels safer already.',
     objectives: [{ type: 'kill', targetMobId: 'forest_wolf', count: 8, label: 'Vale Blobdog slain' }],
     xpReward: 250, copperReward: 75, itemRewards: {},
@@ -244,7 +244,7 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
   q_lumber_for_a_home: {
     id: 'q_lumber_for_a_home', name: 'Lumber for a Home',
     giverNpcId: 'trader_wilkes', turnInNpcId: 'trader_wilkes',
-    text: 'If you want a place of your own beyond Eastbrook\'s walls, you need timber first. Chop 10 trees and I will sign over a small farmstead deed. Plant it outside the castle walls, where there is room to work.',
+    text: 'If you want a place of your own beyond Dawnmere\'s walls, you need timber first. Chop 10 trees and I will sign over a small farmstead deed. Plant it outside the castle walls, where there is room to work.',
     completionText: 'That is good straight lumber. Here is your deed — use it outside the walls and the land is yours.',
     objectives: [{ type: 'chop', count: 10, label: 'Trees chopped' }],
     xpReward: 250, copperReward: 0,
@@ -268,13 +268,13 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
     requiresQuest: 'q_craft_first_weapon',
   },
   q_spiders: {
-    id: 'q_spiders', name: 'Webwood Menace',
+    id: 'q_spiders', name: 'Silkshade Grove Menace',
     giverNpcId: 'apothecary_lin', turnInNpcId: 'apothecary_lin',
-    text: 'The lurkers in the eastern woods spin a silk I need for my poultices — and they have grown far too numerous besides. Cull 6 Webwood Spikers and cut 4 silk glands from their bellies.',
+    text: 'The lurkers in the eastern woods spin a silk I need for my poultices — and they have grown far too numerous besides. Cull 6 Silkshade Grove Spikers and cut 4 silk glands from their bellies.',
     completionText: 'Ugh, still twitching. Perfect. Here, you\'ve earned this.',
     objectives: [
-      { type: 'kill', targetMobId: 'webwood_spider', count: 6, label: 'Webwood Spiker slain' },
-      { type: 'collect', itemId: 'webwood_silk', count: 4, label: 'Webwood Silk Gland' },
+      { type: 'kill', targetMobId: 'webwood_spider', count: 6, label: 'Silkshade Grove Spiker slain' },
+      { type: 'collect', itemId: 'webwood_silk', count: 4, label: 'Silkshade Grove Silk Gland' },
     ],
     xpReward: 420, copperReward: 140, itemRewards: {},
     minLevel: 2,
@@ -282,7 +282,7 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
   q_murlocs: {
     id: 'q_murlocs', name: 'Trouble at the Lake',
     giverNpcId: 'fisherman_brandt', turnInNpcId: 'fisherman_brandt',
-    text: 'Twenty years I have fished Mirror Lake, and never lost a net until those gurgling fish-men crawled out of the shallows. Drive the Mudfin back — slay 8 of them. And watch yourself: where there is one murloc, there are five.',
+    text: 'Twenty years I have fished Starfall Lake, and never lost a net until those gurgling fish-men crawled out of the shallows. Drive the Mudfin back — slay 8 of them. And watch yourself: where there is one murloc, there are five.',
     completionText: 'Hah! That will teach them to mind their own mudholes.',
     objectives: [{ type: 'kill', targetMobId: 'mudfin_murloc', count: 8, label: 'Mudfin Croaker slain' }],
     xpReward: 520, copperReward: 180, itemRewards: {},
@@ -309,7 +309,7 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
   q_supplies: {
     id: 'q_supplies', name: 'Stolen Supplies',
     giverNpcId: 'trader_wilkes', turnInNpcId: 'trader_wilkes',
-    text: 'Those bandits hit my last wagon and made off with four crates of goods — tools, salt, good Eastbrook linen. The crates are stacked around their camp in the southeast hills. Steal them back for me, would you?',
+    text: 'Those bandits hit my last wagon and made off with four crates of goods — tools, salt, good Dawnmere linen. The crates are stacked around their camp in the southeast hills. Steal them back for me, would you?',
     completionText: 'My crates! Barely a scratch on them. You are a wonder.',
     objectives: [{ type: 'collect', itemId: 'supply_crate', count: 4, label: 'Stolen Supply Crate' }],
     xpReward: 550, copperReward: 250, itemRewards: {},
@@ -328,7 +328,7 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
     id: 'q_names_of_the_dead', name: 'The Names of the Dead',
     giverNpcId: 'brother_aldric', turnInNpcId: 'brother_aldric',
     text: 'If the Gravecallers raised our dead, I must know whose graves they robbed. The chapel sexton kept a burial ledger, and the wind has scattered its pages across the chapel yard. Gather 3 of them for me, $N — the dead deserve to be called by their names.',
-    completionText: 'These poor souls... and look here. Sexton Marrow-Skull — the chapel\'s own living caretaker — his grave the first disturbed. Morthen began with the very man who buried Eastbrook\'s dead.',
+    completionText: 'These poor souls... and look here. Sexton Marrow-Skull — the chapel\'s own living caretaker — his grave the first disturbed. Morthen began with the very man who buried Dawnmere\'s dead.',
     objectives: [{ type: 'collect', itemId: 'weathered_ledger_page', count: 3, label: 'Weathered Ledger Page' }],
     xpReward: 600, copperReward: 250, itemRewards: {},
     requiresQuest: 'q_whispers',
@@ -358,7 +358,7 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
     id: 'q_hollow', name: 'Into the Hollow',
     giverNpcId: 'brother_aldric', turnInNpcId: 'brother_aldric',
     text: 'Morthen the Grave Demon waits at the bottom of the Hollow Crypt, ringed by the elite dead he has raised. He is far beyond any one hero — take four companions, no fewer. End him, and the Vale\'s dead will finally sleep.',
-    completionText: 'The whispering has stopped. You have done what the whole Vale could not, $N — the dead sleep, and Eastbrook owes you everything it has.',
+    completionText: 'The whispering has stopped. You have done what the whole Vale could not, $N — the dead sleep, and Dawnmere owes you everything it has.',
     objectives: [{ type: 'kill', targetMobId: 'morthen', count: 1, label: 'Morthen the Grave Demon slain' }],
     xpReward: 1500, copperReward: 10000,
     itemRewards: { warrior: 'gravecaller_blade', rogue: 'widowfang_dirk', mage: 'gravecaller_staff' },
@@ -399,7 +399,7 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
     id: 'q_ringleader', name: 'The Ringleader',
     giverNpcId: 'marshal_redbrook', turnInNpcId: 'marshal_redbrook',
     text: 'The bandits answer to one man: Gorrak the Ruthless. Cut off the head and the body will scatter. He skulks at the heart of their camp. End him, $N.',
-    completionText: 'Gorrak is dead? Then the Vale is free of his shadow. You have done Eastbrook a great service.',
+    completionText: 'Gorrak is dead? Then the Vale is free of his shadow. You have done Dawnmere a great service.',
     objectives: [{ type: 'kill', targetMobId: 'gorrak', count: 1, label: 'Gorrak the Ruthless slain' }],
     xpReward: 800, copperReward: 500,
     itemRewards: { warrior: 'militia_vest', mage: 'woven_robe', rogue: 'shadow_jerkin' },
@@ -491,7 +491,7 @@ export const ZONE1_ROADS: { x: number; z: number }[][] = [
 // ---------------------------------------------------------------------------
 
 export const ZONE1_PROPS: ZonePropsDef = {
-  // Eastbrook's loose village buildings + well have been replaced visually by
+  // Dawnmere's loose village buildings + well have been replaced visually by
   // the user-provided castle_town.glb shell in render/props.ts. Keep NPCs and
   // quest/service anchors in the same central positions, now inside the walls.
   buildings: [],

@@ -36,7 +36,7 @@ function rotY(lx: number, lz: number, rot: number): { x: number; z: number } {
 // Collider sets
 // ---------------------------------------------------------------------------
 
-// Approximate collision for the user-provided Eastbrook castle_town.glb visual
+// Approximate collision for the user-provided Dawnmere castle_town.glb visual
 // shell. The renderer strips the Sketchfab base plane, centers the asset on the
 // remaining walls/buildings, scales it to a ~96yd footprint, and rotates it by
 // PI; these simple OBBs match that transformed footprint closely enough for

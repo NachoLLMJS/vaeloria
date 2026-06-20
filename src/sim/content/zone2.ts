@@ -1,4 +1,4 @@
-// Zone 2 — Mirefen Marsh (levels 6-13). Brother Aldric follows the
+// Zone 2 — Mistfen Marsh (levels 6-13). Brother Aldric follows the
 // Gravecaller trail north of the causeway: drowned dead rise from the fen,
 // trolls dig into barrow-mounds, and Vael the Mist Hexblob waits in the
 // Sunken Bastion.
@@ -14,12 +14,12 @@ const facePoint = (from: { x: number; z: number }, to: { x: number; z: number })
 
 export const ZONE2_ZONE: ZoneDef = {
   id: 'mirefen_marsh',
-  name: 'Mirefen Marsh',
+  name: 'Mistfen Marsh',
   zMin: 180,
   zMax: 540,
   levelRange: [6, 13],
   biome: 'marsh',
-  hub: { x: 0, z: 300, radius: 20, name: 'Fenbridge' },
+  hub: { x: 0, z: 300, radius: 20, name: 'Mistfen Crossing' },
   graveyard: { x: -18, z: 286 },
   lakes: [
     { x: -110, z: 310, radius: 35 },
@@ -27,27 +27,27 @@ export const ZONE2_ZONE: ZoneDef = {
     { x: -40, z: 450, radius: 20 },
   ],
   pois: [
-    { x: 0, z: 300, label: 'Fenbridge' },
-    { x: -40, z: 230, label: 'Prowler Reeds' },
-    { x: -105, z: 300, label: 'Deepfen Shallows' },
-    { x: 80, z: 315, label: 'Widow Thicket' },
-    { x: 100, z: 435, label: 'Drowned Chapel' },
-    { x: -95, z: 440, label: 'Troll Mounds' },
-    { x: 0, z: 485, label: 'Gravecaller Encampment' },
+    { x: 0, z: 300, label: 'Mistfen Crossing' },
+    { x: -40, z: 230, label: 'Duskwolf Reeds' },
+    { x: -105, z: 300, label: 'Eldermire Shallows' },
+    { x: 80, z: 315, label: 'Blacklace Thicket' },
+    { x: 100, z: 435, label: 'Drowned Reliquary' },
+    { x: -95, z: 440, label: 'Bogtusk Barrows' },
+    { x: 0, z: 485, label: 'Gravecaller Circle' },
     { x: 45, z: 515, label: 'The Sunken Bastion' },
   ],
-  welcome: 'Report to Warden Fenwick at the Fenbridge gate.',
+  welcome: 'Report to Warden Fenwick at the Mistfen Crossing gate.',
 };
 
-// Causeway north from Eastbrook to Fenbridge, then spokes to each hub.
-// The Drowned Chapel spoke rounds the lake at (60,380) along its western
-// shore via Widow Thicket — the whole polyline stays clear of the lake carve
+// Causeway north from Dawnmere to Mistfen Crossing, then spokes to each hub.
+// The Drowned Reliquary spoke rounds the lake at (60,380) along its western
+// shore via Blacklace Thicket — the whole polyline stays clear of the lake carve
 // so the road never dips under the waterline (tests/progression.test.ts
 // samples every road against the heightfield to lock this in).
 export const ZONE2_ROADS: { x: number; z: number }[][] = [
-  [{ x: 0, z: 80 }, { x: 0, z: 180 }, { x: -8, z: 240 }, { x: 0, z: 300 }],         // Eastbrook -> Fenbridge
-  [{ x: 4, z: 308 }, { x: 45, z: 336 }, { x: 92, z: 350 }, { x: 102, z: 392 }, { x: 90, z: 420 }], // -> Drowned Chapel
-  [{ x: -6, z: 308 }, { x: -40, z: 370 }, { x: -80, z: 420 }],                      // -> Troll Mounds
+  [{ x: 0, z: 80 }, { x: 0, z: 180 }, { x: -8, z: 240 }, { x: 0, z: 300 }],         // Dawnmere -> Mistfen Crossing
+  [{ x: 4, z: 308 }, { x: 45, z: 336 }, { x: 92, z: 350 }, { x: 102, z: 392 }, { x: 90, z: 420 }], // -> Drowned Reliquary
+  [{ x: -6, z: 308 }, { x: -40, z: 370 }, { x: -80, z: 420 }],                      // -> Bogtusk Barrows
   [{ x: 2, z: 312 }, { x: 10, z: 400 }, { x: 20, z: 470 }, { x: 45, z: 515 }],      // -> cult camp -> Bastion
 ];
 
@@ -68,7 +68,7 @@ export const ZONE2_MOBS: Record<string, MobTemplate> = {
     scale: 0.95, color: 0x4d5656,
   },
   deepfen_murloc: {
-    id: 'deepfen_murloc', name: 'Deepfen Croaker', minLevel: 8, maxLevel: 9, family: 'murloc',
+    id: 'deepfen_murloc', name: 'Eldermire Croaker', minLevel: 8, maxLevel: 9, family: 'murloc',
     hpBase: 48, hpPerLevel: 19, dmgBase: 7, dmgPerLevel: 2.2, attackSpeed: 1.9,
     armorPerLevel: 12, moveSpeed: 8, aggroRadius: 14, // deepfen packs swarm from far out
     loot: [
@@ -79,7 +79,7 @@ export const ZONE2_MOBS: Record<string, MobTemplate> = {
     scale: 0.85, color: 0x45b39d,
   },
   mire_widow: {
-    id: 'mire_widow', name: 'Mirefen Spiker', minLevel: 8, maxLevel: 10, family: 'spider',
+    id: 'mire_widow', name: 'Mistfen Spiker', minLevel: 8, maxLevel: 10, family: 'spider',
     hpBase: 48, hpPerLevel: 19, dmgBase: 8, dmgPerLevel: 2.2, attackSpeed: 1.8,
     armorPerLevel: 10, moveSpeed: 8, aggroRadius: 10,
     loot: [
@@ -112,7 +112,7 @@ export const ZONE2_MOBS: Record<string, MobTemplate> = {
     scale: 1.0, color: 0x7fb3d5,
   },
   fen_troll: {
-    id: 'fen_troll', name: 'Mirefen Orc', minLevel: 10, maxLevel: 12, family: 'troll',
+    id: 'fen_troll', name: 'Mistfen Orc', minLevel: 10, maxLevel: 12, family: 'troll',
     hpBase: 56, hpPerLevel: 21, dmgBase: 9, dmgPerLevel: 2.4, attackSpeed: 2.2,
     armorPerLevel: 18, moveSpeed: 7.5, aggroRadius: 11,
     loot: [
@@ -169,12 +169,12 @@ export const ZONE2_MOBS: Record<string, MobTemplate> = {
 };
 
 // ---------------------------------------------------------------------------
-// NPCs (Fenbridge hub)
+// NPCs (Mistfen Crossing hub)
 // ---------------------------------------------------------------------------
 
 export const ZONE2_NPCS: Record<string, NpcDef> = {
   warden_fenwick: {
-    id: 'warden_fenwick', name: 'Warden Fenwick', title: 'Warden of Fenbridge',
+    id: 'warden_fenwick', name: 'Warden Fenwick', title: 'Warden of Mistfen Crossing',
     pos: { x: 3, z: 304 }, facing: facePoint({ x: 3, z: 304 }, FENBRIDGE_CAMPFIRE), color: 0x7e5109,
     questIds: ['q_fenbridge_muster', 'q_prowlers', 'q_deepfen', 'q_deepfen_purge', 'q_trolls', 'q_deacon'],
     greeting: 'Hold at the gate, $C. Past those reeds, the fen does the killing for us.',
@@ -197,7 +197,7 @@ export const ZONE2_NPCS: Record<string, NpcDef> = {
       'bogiron_mace', 'fenreed_staff', 'mirefen_skinner', 'bogiron_hauberk',
       'marshcloth_robe', 'reedwoven_jerkin', 'fenwalker_boots', 'reedwoven_trousers',
     ],
-    greeting: 'Dry boots, dry bread, dry powder — at Fenbridge you get two of the three on a good day.',
+    greeting: 'Dry boots, dry bread, dry powder — at Mistfen Crossing you get two of the three on a good day.',
   },
   herbalist_yara: {
     id: 'herbalist_yara', name: 'Herbalist Yara', title: 'Herbalist',
@@ -219,11 +219,11 @@ export const ZONE2_NPCS: Record<string, NpcDef> = {
 
 export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_fenbridge_muster: {
-    id: 'q_fenbridge_muster', name: 'Muster at Fenbridge',
+    id: 'q_fenbridge_muster', name: 'Muster at Mistfen Crossing',
     giverNpcId: 'brother_aldric', turnInNpcId: 'warden_fenwick',
-    text: "Morthen's writings named a master in the northern marsh — a 'Mistcaller.' Now Warden Fenwick has sounded the muster horn at Fenbridge, and I do not believe in coincidence, $N. Take the causeway north, pull the muster order from the gatepost, and present it to the Warden.",
+    text: "Morthen's writings named a master in the northern marsh — a 'Mistcaller.' Now Warden Fenwick has sounded the muster horn at Mistfen Crossing, and I do not believe in coincidence, $N. Take the causeway north, pull the muster order from the gatepost, and present it to the Warden.",
     completionText: "Aldric's seal, is it? Then you'll do. The fen has been swallowing my patrols whole, and I need every blade that floats.",
-    objectives: [{ type: 'collect', itemId: 'fen_muster_order', count: 1, label: 'Fenbridge Muster Order' }],
+    objectives: [{ type: 'collect', itemId: 'fen_muster_order', count: 1, label: 'Mistfen Crossing Muster Order' }],
     xpReward: 300, copperReward: 200, itemRewards: {},
     minLevel: 6,
   },
@@ -238,7 +238,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_prowler_pelts: {
     id: 'q_prowler_pelts', name: 'Pelts for the Causeway',
     giverNpcId: 'provisioner_hale', turnInNpcId: 'provisioner_hale',
-    text: 'Every plank of that causeway rests on pilings wrapped in oiled prowler hide — the only thing the rot will not chew through. My stock is gone and the south spans are already sinking. Bring me 8 unspoiled pelts, $N, before we are all wading to Eastbrook.',
+    text: 'Every plank of that causeway rests on pilings wrapped in oiled prowler hide — the only thing the rot will not chew through. My stock is gone and the south spans are already sinking. Bring me 8 unspoiled pelts, $N, before we are all wading to Dawnmere.',
     completionText: 'Good thick pelts, these. The causeway will outlast the both of us now.',
     objectives: [{ type: 'collect', itemId: 'mire_prowler_pelt', count: 8, label: 'Mire Blobdog Pelt' }],
     xpReward: 850, copperReward: 350, itemRewards: {},
@@ -246,26 +246,26 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_fen_supplies: {
     id: 'q_fen_supplies', name: 'The Lost Caravan',
     giverNpcId: 'provisioner_hale', turnInNpcId: 'provisioner_hale',
-    text: 'A caravan out of Eastbrook went into the mist three days back and never rang the gate bell. The wreck is strewn the whole length of the causeway — crates, casks, the lot, sinking slow. Salvage 5 loads of goods before the marsh finishes the job.',
+    text: 'A caravan out of Dawnmere went into the mist three days back and never rang the gate bell. The wreck is strewn the whole length of the causeway — crates, casks, the lot, sinking slow. Salvage 5 loads of goods before the marsh finishes the job.',
     completionText: 'Waterlogged, but whole. Poor drivers... the fen keeps what it catches, $N. Remember that.',
     objectives: [{ type: 'collect', itemId: 'lost_caravan_goods', count: 5, label: 'Lost Caravan Goods' }],
     xpReward: 900, copperReward: 350, itemRewards: {},
     minLevel: 7,
   },
   q_deepfen: {
-    id: 'q_deepfen', name: 'The Deepfen Stirs',
+    id: 'q_deepfen', name: 'The Eldermire Stirs',
     giverNpcId: 'warden_fenwick', turnInNpcId: 'warden_fenwick',
-    text: 'The Deepfen murlocs kept to their shallows for twenty years. Now they swarm the east bank like flies on a carcass — and my wardens say they are dragging things up from the lake bed. Whatever has them stirred, I want it stopped. Cull 12 of the snappers.',
+    text: 'The Eldermire murlocs kept to their shallows for twenty years. Now they swarm the east bank like flies on a carcass — and my wardens say they are dragging things up from the lake bed. Whatever has them stirred, I want it stopped. Cull 12 of the snappers.',
     completionText: "That will push them back to the mud for a while. But something set them digging, and I mean to learn what.",
-    objectives: [{ type: 'kill', targetMobId: 'deepfen_murloc', count: 12, label: 'Deepfen Croaker slain' }],
+    objectives: [{ type: 'kill', targetMobId: 'deepfen_murloc', count: 12, label: 'Eldermire Croaker slain' }],
     xpReward: 1000, copperReward: 400, itemRewards: {},
     minLevel: 7,
   },
   q_idols: {
     id: 'q_idols', name: 'Idols of the Deep',
     giverNpcId: 'brother_aldric_fen', turnInNpcId: 'brother_aldric_fen',
-    text: "Fenwick's wardens say the fish-men dredge idols from the lake bottom and clutch them like holy relics. If those idols are what I fear, I must see them with my own eyes. Take 5 from the Deepfen snappers — they will not part with them kindly.",
-    completionText: 'Gravecaller work — older than Morthen, older than me. The sect did not begin in Eastbrook, $N. It began here, and the lake has been keeping its secrets.',
+    text: "Fenwick's wardens say the fish-men dredge idols from the lake bottom and clutch them like holy relics. If those idols are what I fear, I must see them with my own eyes. Take 5 from the Eldermire snappers — they will not part with them kindly.",
+    completionText: 'Gravecaller work — older than Morthen, older than me. The sect did not begin in Dawnmere, $N. It began here, and the lake has been keeping its secrets.',
     objectives: [{ type: 'collect', itemId: 'waterlogged_idol', count: 5, label: 'Waterlogged Idol' }],
     xpReward: 1050, copperReward: 400, itemRewards: {},
     requiresQuest: 'q_deepfen',
@@ -275,7 +275,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
     giverNpcId: 'warden_fenwick', turnInNpcId: 'warden_fenwick',
     text: "Aldric says those idols are cult-make — which means the murlocs are hauling the marsh's old evil up one armful at a time. I will not have it washing onto my causeway. Go back to the shallows and break the dredging for good: 14 more snappers.",
     completionText: "Ruthless and thorough. If this marsh ever dries out, there's warden's work waiting for you.",
-    objectives: [{ type: 'kill', targetMobId: 'deepfen_murloc', count: 14, label: 'Deepfen Croaker slain' }],
+    objectives: [{ type: 'kill', targetMobId: 'deepfen_murloc', count: 14, label: 'Eldermire Croaker slain' }],
     xpReward: 1100, copperReward: 450, itemRewards: {},
     requiresQuest: 'q_idols',
   },
@@ -285,7 +285,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
     text: "Widow venom is the only thing that draws fen-rot from a wound — I bled a man of it just this morning. But the thicket west of the road has gone from nuisance to horror; the webs are taking deer whole now. Kill 10 widows and cut me 6 venom sacs, whole and unburst.",
     completionText: 'Whole sacs, every one. You have steadier hands than half the surgeons in the south, $N.',
     objectives: [
-      { type: 'kill', targetMobId: 'mire_widow', count: 10, label: 'Mirefen Spiker slain' },
+      { type: 'kill', targetMobId: 'mire_widow', count: 10, label: 'Mistfen Spiker slain' },
       { type: 'collect', itemId: 'widow_venom_sac', count: 6, label: 'Widow Venom Sac' },
     ],
     xpReward: 1200, copperReward: 450, itemRewards: {},
@@ -294,10 +294,10 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_broodmother: {
     id: 'q_broodmother', name: 'The Spiker Broodmother',
     giverNpcId: 'herbalist_yara', turnInNpcId: 'herbalist_yara',
-    text: "You have seen the webs — now ask yourself what spins cables thick as a man's wrist. The wardens call her the Broodmother, and her clutch hangs over Widow Thicket like a second canopy. Burn through 8 more widows and put the old mother down before that clutch opens.",
+    text: "You have seen the webs — now ask yourself what spins cables thick as a man's wrist. The wardens call her the Broodmother, and her clutch hangs over Blacklace Thicket like a second canopy. Burn through 8 more widows and put the old mother down before that clutch opens.",
     completionText: 'Dead? Truly dead? Then the thicket is just trees again. The Light bless your blade, $N.',
     objectives: [
-      { type: 'kill', targetMobId: 'mire_widow', count: 8, label: 'Mirefen Spiker slain' },
+      { type: 'kill', targetMobId: 'mire_widow', count: 8, label: 'Mistfen Spiker slain' },
       { type: 'kill', targetMobId: 'mirefen_broodmother', count: 1, label: 'The Spiker Broodmother slain' },
     ],
     xpReward: 1250, copperReward: 500, itemRewards: {},
@@ -332,11 +332,11 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
     requiresQuest: 'q_drowned_censers',
   },
   q_trolls: {
-    id: 'q_trolls', name: 'Mounds of the Mirefen',
+    id: 'q_trolls', name: 'Mounds of the Mistfen',
     giverNpcId: 'warden_fenwick', turnInNpcId: 'warden_fenwick',
-    text: 'The Mirefen trolls have torn open the old barrow-mounds east of the far lake — burial mounds, $N, older than any kingdom of men. Whatever gold they think is down there, what they are letting OUT is worse. Drive them off the mounds: 12 trolls dead ought to do it.',
+    text: 'The Mistfen trolls have torn open the old barrow-mounds east of the far lake — burial mounds, $N, older than any kingdom of men. Whatever gold they think is down there, what they are letting OUT is worse. Drive them off the mounds: 12 trolls dead ought to do it.',
     completionText: "Trolls don't dig without a reason. Someone told them where to dig — and I'd wager my gate it wears a grey robe.",
-    objectives: [{ type: 'kill', targetMobId: 'fen_troll', count: 12, label: 'Mirefen Orc slain' }],
+    objectives: [{ type: 'kill', targetMobId: 'fen_troll', count: 12, label: 'Mistfen Orc slain' }],
     xpReward: 1600, copperReward: 600, itemRewards: {},
     minLevel: 10,
   },
@@ -345,7 +345,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
     giverNpcId: 'scout_maren', turnInNpcId: 'scout_maren',
     text: "I crawled the troll mounds two nights past. Those fetishes they plant are not troll-craft — the knots are wrong, the bones are man-bones, and every one points at the open barrows like a signpost. Bring me 8 of them and I will prove to Fenwick who is really paying for this dig.",
     completionText: 'Same maker as the banners in the cult camp. The trolls are hired shovels, nothing more. Good work, $N.',
-    objectives: [{ type: 'collect', itemId: 'troll_fetish', count: 8, label: 'Mirefen Orc Fetish' }],
+    objectives: [{ type: 'collect', itemId: 'troll_fetish', count: 8, label: 'Mistfen Orc Fetish' }],
     xpReward: 1650, copperReward: 600,
     itemRewards: { warrior: 'trollhide_leggings', mage: 'trollhide_leggings', rogue: 'trollhide_leggings' },
     requiresQuest: 'q_trolls',
@@ -354,7 +354,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
     id: 'q_grubjaw', name: 'The Glutton',
     giverNpcId: 'provisioner_hale', turnInNpcId: 'provisioner_hale',
     text: "There's one troll the others won't dig beside — Grubjaw, the Glutton. He ate my last two pack-mules, harness and all, and my insurance man drowned years ago. He prowls the far eastern mounds, $N. Bring me his tusk and I will outfit you proper.",
-    completionText: "That tusk is long as my forearm! The mules are avenged, and Fenbridge owes you a round.",
+    completionText: "That tusk is long as my forearm! The mules are avenged, and Mistfen Crossing owes you a round.",
     objectives: [{ type: 'collect', itemId: 'grubjaw_tusk', count: 1, label: "Grubjaw's Tusk" }],
     xpReward: 1700, copperReward: 700,
     itemRewards: { warrior: 'marshstrider_boots', mage: 'marshstrider_boots', rogue: 'marshstrider_boots' },
@@ -436,7 +436,7 @@ export const ZONE2_QUEST_ORDER = [
 ];
 
 // ---------------------------------------------------------------------------
-// World layout. Fenbridge sits at (0,300); +z north (deeper fen), +x west
+// World layout. Mistfen Crossing sits at (0,300); +z north (deeper fen), +x west
 // (east is -x — see the zone1 layout note).
 // ---------------------------------------------------------------------------
 
@@ -447,11 +447,11 @@ export const ZONE2_CAMPS: CampDef[] = [
   // Murlocs: shores of the big east lake — camps straddle the waterline
   { mobId: 'deepfen_murloc', center: { x: -82, z: 273 }, radius: 15, count: 8 },
   { mobId: 'deepfen_murloc', center: { x: -120, z: 350 }, radius: 13, count: 6 },
-  // Widows: thicket west of Fenbridge
+  // Widows: thicket west of Mistfen Crossing
   { mobId: 'mire_widow', center: { x: 70, z: 300 }, radius: 20, count: 7 },
   { mobId: 'mire_widow', center: { x: 95, z: 340 }, radius: 16, count: 6 },
   { mobId: 'mirefen_broodmother', center: { x: 98, z: 348 }, radius: 3, count: 1 },
-  // Drowned dead: the Drowned Chapel and the shallows beyond
+  // Drowned dead: the Drowned Reliquary and the shallows beyond
   { mobId: 'drowned_dead', center: { x: 90, z: 420 }, radius: 20, count: 8 },
   { mobId: 'drowned_dead', center: { x: 115, z: 450 }, radius: 16, count: 6 },
   // Trolls: barrow-mounds in the southeast
@@ -472,7 +472,7 @@ export const ZONE2_OBJECTS: GroundObjectDef[] = [
   },
   {
     itemId: 'fen_muster_order',
-    name: 'Fenbridge Muster Order',
+    name: 'Mistfen Crossing Muster Order',
     positions: [{ x: 1, z: 294 }, { x: -2, z: 297 }],
   },
   {
@@ -510,13 +510,13 @@ const ROG: PlayerClass[] = ['rogue', 'hunter'];
 
 export const ZONE2_ITEMS: Record<string, ItemDef> = {
   // --- quest items ---
-  fen_muster_order: { id: 'fen_muster_order', name: 'Fenbridge Muster Order', kind: 'quest', sellValue: 0, questId: 'q_fenbridge_muster' },
+  fen_muster_order: { id: 'fen_muster_order', name: 'Mistfen Crossing Muster Order', kind: 'quest', sellValue: 0, questId: 'q_fenbridge_muster' },
   mire_prowler_pelt: { id: 'mire_prowler_pelt', name: 'Mire Blobdog Pelt', kind: 'quest', sellValue: 0, questId: 'q_prowler_pelts' },
   lost_caravan_goods: { id: 'lost_caravan_goods', name: 'Lost Caravan Goods', kind: 'quest', sellValue: 0, questId: 'q_fen_supplies' },
   waterlogged_idol: { id: 'waterlogged_idol', name: 'Waterlogged Idol', kind: 'quest', sellValue: 0, questId: 'q_idols' },
   widow_venom_sac: { id: 'widow_venom_sac', name: 'Widow Venom Sac', kind: 'quest', sellValue: 0, questId: 'q_widows' },
   rusted_censer: { id: 'rusted_censer', name: 'Rusted Censer', kind: 'quest', sellValue: 0, questId: 'q_drowned_censers' },
-  troll_fetish: { id: 'troll_fetish', name: 'Mirefen Orc Fetish', kind: 'quest', sellValue: 0, questId: 'q_troll_fetishes' },
+  troll_fetish: { id: 'troll_fetish', name: 'Mistfen Orc Fetish', kind: 'quest', sellValue: 0, questId: 'q_troll_fetishes' },
   grubjaw_tusk: { id: 'grubjaw_tusk', name: "Grubjaw's Tusk", kind: 'quest', sellValue: 0, questId: 'q_grubjaw' },
   cult_cipher: { id: 'cult_cipher', name: 'Gravecaller Cipher', kind: 'quest', sellValue: 0, questId: 'q_summoners' },
   bastion_ward_stone: { id: 'bastion_ward_stone', name: 'Bastion Ward Stone', kind: 'quest', sellValue: 0, questId: 'q_bastion_door' },
@@ -576,7 +576,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
   },
   // --- vendor food & drink (Provisioner Hale) ---
   fenbridge_rye: {
-    id: 'fenbridge_rye', name: 'Fenbridge Rye Loaf', kind: 'food', quality: 'common',
+    id: 'fenbridge_rye', name: 'Mistfen Crossing Rye Loaf', kind: 'food', quality: 'common',
     foodHp: 243, sellValue: 25, buyValue: 400,
   },
   marsh_mint_tea: {
@@ -584,7 +584,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     drinkMana: 288, sellValue: 25, buyValue: 400,
   },
   smoked_eel: {
-    id: 'smoked_eel', name: 'Smoked Mirefen Eel', kind: 'food', quality: 'common',
+    id: 'smoked_eel', name: 'Smoked Mistfen Eel', kind: 'food', quality: 'common',
     foodHp: 432, sellValue: 60, buyValue: 1000,
   },
   silvermist_cordial: {
@@ -601,7 +601,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 9, max: 16, speed: 3.0 }, stats: { int: 1 }, sellValue: 250, buyValue: 2500,
   },
   mirefen_skinner: {
-    id: 'mirefen_skinner', name: 'Mirefen Skinner', kind: 'weapon', slot: 'mainhand', quality: 'common',
+    id: 'mirefen_skinner', name: 'Mistfen Skinner', kind: 'weapon', slot: 'mainhand', quality: 'common',
     weapon: { min: 6, max: 10, speed: 1.8, dagger: true }, sellValue: 250, buyValue: 2500,
   },
   bogiron_hauberk: {
@@ -629,7 +629,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
   soggy_moccasin: { id: 'soggy_moccasin', name: 'Soggy Moccasin', kind: 'junk', quality: 'poor', sellValue: 9 },
   cracked_fetish: { id: 'cracked_fetish', name: 'Cracked Fetish', kind: 'junk', quality: 'poor', sellValue: 14 },
   chipped_tusk: { id: 'chipped_tusk', name: 'Chipped Tusk', kind: 'junk', quality: 'poor', sellValue: 15 },
-  deepfen_pearl: { id: 'deepfen_pearl', name: 'Deepfen Pearl', kind: 'junk', quality: 'poor', sellValue: 600 },
+  deepfen_pearl: { id: 'deepfen_pearl', name: 'Eldermire Pearl', kind: 'junk', quality: 'poor', sellValue: 600 },
 };
 
 // ---------------------------------------------------------------------------

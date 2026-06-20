@@ -337,7 +337,7 @@ export function buildProps(seed: number): PropsResult {
     bucket.mats.push(new THREE.Matrix4().compose(tmpPos, tmpQuat, tmpScale));
   }
 
-  // ---- Eastbrook castle town shell ----------------------------------------
+  // ---- Dawnmere castle town shell ----------------------------------------
   // User-provided full castle-town GLB replaces the old loose village houses +
   // well in zone 1. The asset's huge green Sketchfab base is stripped at load
   // time, so the shell centers on the actual walls/interior instead of the
