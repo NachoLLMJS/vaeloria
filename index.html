@@ -2608,13 +2608,21 @@
   .cc-class-grid .mini-class:hover { border-color: #caa24a; }
   .cc-class-grid .mini-class:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
   .cc-class-grid .cc-class-ico {
-    width: 34px; height: 34px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle at 35% 30%, #2a2214, #100b06);
+    width: 34px; height: 34px; border-radius: 50%; overflow: hidden;
+    background: #100b06 center / cover no-repeat; /* WoW class icon set per data-class below */
     border: 2px solid var(--class-color, #caa24a);
-    color: #e8d4a0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; line-height: 1;
+    font-size: 0; color: transparent; /* hide the old class letter */
     box-shadow: 0 0 8px rgba(0,0,0,.6);
   }
+  .mini-class[data-class="warrior"] .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Warrior.PNG'); }
+  .mini-class[data-class="paladin"] .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Paladin.PNG'); }
+  .mini-class[data-class="hunter"]  .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Hunter.PNG'); }
+  .mini-class[data-class="rogue"]   .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Rogue.PNG'); }
+  .mini-class[data-class="priest"]  .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Priest.PNG'); }
+  .mini-class[data-class="shaman"]  .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Shaman.PNG'); }
+  .mini-class[data-class="mage"]    .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Mage.PNG'); }
+  .mini-class[data-class="warlock"] .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Warlock.PNG'); }
+  .mini-class[data-class="druid"]   .cc-class-ico { background-image: url('/images/icons/classes/ClassIcon_Druid.PNG'); }
   .cc-class-grid .cc-class-name { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: .04em; color: #a3936c; text-transform: uppercase; text-align: center; }
   .cc-class-grid .mini-class.sel { border-color: #f1d27a; box-shadow: 0 0 14px rgba(241,210,122,.55), inset 0 0 12px rgba(241,210,122,.18); }
   .cc-class-grid .mini-class.sel .cc-class-name { color: #ffe9ad; }
