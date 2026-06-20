@@ -4,6 +4,7 @@ import { PlayerClass } from '../../sim/types';
 import { loadGltf, loadTexture } from '../assets/loader';
 import { buildSky, SkyView } from '../sky';
 import { SUN_ANCHOR, GFX } from '../gfx';
+import { EffectComposer, RenderPass, EffectPass, GodRaysEffect, KernelSize } from 'postprocessing';
 
 const PREVIEW_ANIM_STATE = {
   speed: 0,
@@ -34,14 +35,14 @@ export class CharacterPreview {
   private lastW = 0;
   private lastH = 0;
   private skyView: SkyView | null = null; // real game sky dome (follows camera)
-  // visible sun disc + god-ray shafts (sprite-based, like the live renderer)
-  private sunSprites: THREE.Sprite[] = [];
-  private godRaySprites: THREE.Sprite[] = [];
-  private psun = new THREE.Vector3(-0.2, 0.24, -0.78).normalize();
+  // real volumetric god rays via the postprocessing GodRaysEffect; sunMesh is the
+  // light source the effect samples (trees/castle occluding it carve the shafts)
+  private composer!: EffectComposer;
+  private sunMesh!: THREE.Mesh;
+  // sun direction: far back (z) so it sits well beyond the castle, low enough to
+  // peek just above the wall and stay inside the camera frame (source for rays)
+  private psun = new THREE.Vector3(0.31, 0.218, -0.925).normalize();
   private time = 0;
-  private tmpA = new THREE.Vector3();
-  private tmpB = new THREE.Vector3();
-  private tmpC = new THREE.Vector3();
 
   constructor(container: HTMLElement, canvas: HTMLCanvasElement) {
     this.container = container;
@@ -56,7 +57,8 @@ export class CharacterPreview {
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight, false);
-    this.renderer.shadowMap.enabled = false; // Preview doesn't need heavy shadows
+    this.renderer.shadowMap.enabled = true; // soft sun shadows on the yard (one extra pass)
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     // match the in-game vale look: ACES tone mapping + the game's exposure
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.12;
@@ -82,10 +84,22 @@ export class CharacterPreview {
     // the hero and feeds the god-rays, plus a camera-side fill for the front.
     const hemi = new THREE.HemisphereLight(0xcfe8ff, 0x46603a, 0.45);
     this.scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xfff0d2, 2.7);
+    const sun = new THREE.DirectionalLight(0xffdda2, 2.7); // warm golden back-sun
     sun.position.copy(this.psun).multiplyScalar(60);
+    // the sun is the single shadow caster; frustum tightened to the yard so the
+    // shadows stay crisp, with normalBias to kill acne on the low grazing angle
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.near = 24;
+    sun.shadow.camera.far = 110;
+    sun.shadow.camera.left = -26;
+    sun.shadow.camera.right = 26;
+    sun.shadow.camera.top = 26;
+    sun.shadow.camera.bottom = -26;
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.05;
     this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xeaf2ff, 1.0);
+    const fill = new THREE.DirectionalLight(0xeae0d2, 1.05);
     fill.position.set(0.6, 3, 9);
     this.scene.add(fill);
     this.buildSunAndGodRays();
@@ -96,6 +110,14 @@ export class CharacterPreview {
     const lowGfx = !GFX.standardMaterials;
     this.skyView = buildSky(lowGfx, SUN_ANCHOR);
     this.scene.add(this.skyView.dome);
+    // lift the sky's radiance gain a touch (only in this preview) for a lighter,
+    // clearer sky than the in-game vale tune — the static camera never triggers a
+    // biome change, so setCameraZ won't reset this back to the default tune.
+    {
+      const skyMat = this.skyView.dome.material as THREE.ShaderMaterial;
+      if (skyMat.uniforms?.uTuneA) skyMat.uniforms.uTuneA.value.x = 0.92;
+      if (skyMat.uniforms?.uTuneB) skyMat.uniforms.uTuneB.value.x = 0.92;
+    }
     const envEq = this.skyView.envTexture('vale');
     if (envEq) {
       const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -120,6 +142,7 @@ export class CharacterPreview {
         new THREE.MeshStandardMaterial({ map: col, normalMap: norm, normalScale: new THREE.Vector2(0.7, 0.7), color: 0x6f8a4a, roughness: 0.97, metalness: 0 })
       );
       ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
       this.scene.add(ground);
     }).catch(() => {});
 
@@ -147,15 +170,90 @@ export class CharacterPreview {
         t.position.set(x, 0, z);
         t.scale.setScalar(scale);
         t.rotation.y = ry;
+        t.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
         this.scene.add(t);
       }).catch(() => {});
     };
-    placeModel('/models/foliage/pine_1.glb', -7.5, -7.5, 1.7, 0.5);
-    placeModel('/models/foliage/pine_3.glb', 7.6, -7.5, 1.7, -0.8);
-    placeModel('/models/foliage/pine_2.glb', -12.0, -12.0, 2.0, 1.2);
-    placeModel('/models/foliage/pine_4.glb', 12.0, -12.0, 1.9, 2.0);
-    placeModel('/models/foliage/rock_1.glb', -5.2, -3.6, 0.9, 0.3);
-    placeModel('/models/foliage/rock_2.glb', 5.4, -3.3, 0.8, 1.5);
+    // Only the boxy-canopy trees (woc_new/Tree_*). They flank BOTH sides of the
+    // yard and recede toward the castle like the grass — shrinking as they near
+    // the wall — kept off-centre so they never block the hero or the gate.
+    const scatterTrees = async () => {
+      const trees = await Promise.all([
+        loadGltf('/models/foliage/woc_new/Tree_1.glb'),
+        loadGltf('/models/foliage/woc_new/Tree_2.glb'),
+        loadGltf('/models/foliage/woc_new/Tree_3.glb'),
+      ]);
+      let ti = 0;
+      for (let z = -1; z >= -17; z -= 1.0) {
+        const depth = Math.min(1, -(z + 1) / 16);   // 0 front .. 1 near the wall
+        const scale = 2.0 - depth * 1.5;            // big in front -> small by the castle
+        // two lanes per side near the camera fill the side bands; one lane far
+        // away (perspective compresses them anyway) — denser, no empty zones
+        const lanes = depth < 0.55 ? 2 : 1;
+        for (const sign of [-1, 1]) {
+          for (let lane = 0; lane < lanes; lane++) {
+            const src = trees[ti % 3];
+            const t = src.scene.clone(true);
+            const x = sign * (4.4 + lane * 2.9 + depth * 3.0 + Math.random() * 1.0);
+            // keep a clear gap on the right around the camera->sun ray so the
+            // deterministic occluder tree (added after this) is the only canopy
+            // biting the sun — random trees here would bury it (kills the shafts)
+            const xRay = (4 - z) / (-this.psun.z) * this.psun.x;
+            if (sign > 0 && z < -6 && z > -15 && Math.abs(x - xRay) < 2.4) continue;
+            t.position.set(x, 0, z + (Math.random() - 0.5) * 1.1);
+            t.scale.setScalar(scale * (0.82 + Math.random() * 0.32));
+            t.rotation.y = Math.random() * Math.PI * 2;
+            t.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+            this.scene.add(t);
+            ti++;
+          }
+        }
+      }
+    };
+    scatterTrees().catch(() => {});
+    // the god-ray occluder: the sun ray passes ~(x5.2, y5.4) at z-10. Tree_2 is
+    // 6.65 tall, so scale 1.18 (canopy ~y3..7.8) sits it at the sun's height;
+    // planted right of the ray so the sun peeks at its LEFT edge (the bulk hides
+    // behind the right panel) — that bright sliver throws the dramatic shafts.
+    placeModel('/models/foliage/woc_new/Tree_2.glb', 7.25, -10, 1.07, 0.7);
+    // rocks scattered in the yard (also shrinking toward the castle)
+    placeModel('/models/foliage/rock_1.glb', -5.2, -2.6, 0.9, 0.3);
+    placeModel('/models/foliage/rock_2.glb', 5.4, -3.0, 0.85, 1.5);
+    placeModel('/models/foliage/rock_3.glb', -3.4, -5.6, 0.55, 1.1);
+    placeModel('/models/foliage/rock_1.glb', 3.6, -6.4, 0.45, 0.6);
+    // Dense grass carpet covering the whole yard up to the castle wall. The wall
+    // base is sunk underground (fine) — grass should reach the visible wall, so we
+    // scatter clones in a jittered grid out to ~z-11. Each GLB loads once (then
+    // many cheap clones). Tufts shrink toward the wall to keep the depth reading.
+    const scatterGrass = async () => {
+      const [big, small] = await Promise.all([
+        loadGltf('/models/foliage/woc_new/Grass_Big.glb'),
+        loadGltf('/models/foliage/woc_new/Grass_Small.glb'),
+      ]);
+      let gi = 0;
+      for (let z = -0.5; z >= -30; z -= 0.95) {
+        const depth = Math.min(1, -z / 30);        // 0 front .. 1 by the wall
+        const rowScale = 0.85 - depth * 0.35;      // shorter overall, front trimmed most; gentle taper to the wall
+        const halfW = 12 - depth * 5;              // taper with distance (stays wide enough to meet the wall)
+        for (let x = -halfW; x <= halfW; x += 1.5) {
+          // keep the hero's footprint a little clearer in the very near rows
+          if (Math.abs(x) < 1.5 && z > -2.3) continue;
+          const src = (gi % 3 === 0) ? small : big;
+          const t = src.scene.clone(true);
+          t.position.set(x + (Math.random() - 0.5) * 1.2, 0, z + (Math.random() - 0.5) * 0.7);
+          t.scale.setScalar(rowScale * (0.72 + Math.random() * 0.4));
+          t.rotation.y = Math.random() * Math.PI * 2;
+          t.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.receiveShadow = true; });
+          this.scene.add(t);
+          gi++;
+        }
+      }
+    };
+    scatterGrass().catch(() => {});
+    // a little ground dressing up close
+    placeModel('/models/foliage/woc_new/Bush.glb', -5.8, -3.4, 0.9, 0.5);
+    placeModel('/models/foliage/woc_new/Flowers_1.glb', 2.9, -2.0, 1.0, 1.5);
+    placeModel('/models/foliage/woc_new/Plant_2.glb', -3.0, -2.2, 1.0, 2.1);
 
     // 6. Setup Drag Controls
     this.setupDragControls();
@@ -181,6 +279,7 @@ export class CharacterPreview {
       const visualKey = `player_${cls}`;
       this.currentVisual = new CharacterVisual(visualKey, 0xffffff);
       this.characterGroup.add(this.currentVisual.root);
+      this.currentVisual.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
       // relaxed front-facing idle for the hero shot (not the combat stance)
       this.currentVisual.setIdleClip('Idle');
 
@@ -218,6 +317,7 @@ export class CharacterPreview {
     const height = this.container.clientHeight;
     if (width > 0 && height > 0) {
       this.renderer.setSize(width, height, false);
+      if (this.composer) this.composer.setSize(width, height);
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
     }
@@ -275,53 +375,44 @@ export class CharacterPreview {
     this.resizeObserver.observe(this.container);
   }
 
-  // sprite sun disc + halo + god-ray shafts (mirrors the live renderer's cheap
-  // volumetric look without a post-processing pass)
+  // Real volumetric god rays: a bright sun disc placed far behind the castle is
+  // the light source; GodRaysEffect radial-blurs it from its screen position and
+  // the trees/castle that occlude it carve out the shafts. Renders through a
+  // dedicated EffectComposer (RenderPass keeps the scene's ACES tone mapping).
   private buildSunAndGodRays(): void {
-    const sunCanvas = (core: boolean): THREE.CanvasTexture => {
-      const c = document.createElement('canvas'); c.width = c.height = 128;
-      const ctx = c.getContext('2d')!;
-      const g = ctx.createRadialGradient(64, 64, 2, 64, 64, 64);
-      if (core) { g.addColorStop(0, 'rgba(255,252,238,1)'); g.addColorStop(0.35, 'rgba(255,238,180,0.95)'); g.addColorStop(1, 'rgba(255,220,140,0)'); }
-      else { g.addColorStop(0, 'rgba(255,236,180,0.6)'); g.addColorStop(1, 'rgba(255,220,150,0)'); }
-      ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 128);
-      return new THREE.CanvasTexture(c);
-    };
-    for (const [tex, scale] of [[sunCanvas(true), 70], [sunCanvas(false), 240]] as const) {
-      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, fog: false, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
-      sp.scale.set(scale, scale, 1); sp.renderOrder = -9;
-      this.sunSprites.push(sp); this.scene.add(sp);
-    }
-    const shaft = document.createElement('canvas'); shaft.width = 64; shaft.height = 256;
-    const sctx = shaft.getContext('2d')!;
-    const gh = sctx.createLinearGradient(0, 0, 0, 256);
-    gh.addColorStop(0, 'rgba(255,240,200,0)'); gh.addColorStop(0.45, 'rgba(255,240,200,0.55)'); gh.addColorStop(0.6, 'rgba(255,240,200,0.5)'); gh.addColorStop(1, 'rgba(255,240,200,0)');
-    sctx.fillStyle = gh; sctx.fillRect(0, 0, 64, 256);
-    const gw = sctx.createLinearGradient(0, 0, 64, 0);
-    gw.addColorStop(0, 'rgba(0,0,0,1)'); gw.addColorStop(0.5, 'rgba(0,0,0,0)'); gw.addColorStop(1, 'rgba(0,0,0,1)');
-    sctx.globalCompositeOperation = 'destination-out'; sctx.fillStyle = gw; sctx.fillRect(0, 0, 64, 256);
-    const shaftTex = new THREE.CanvasTexture(shaft);
-    for (let i = 0; i < 4; i++) {
-      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: shaftTex, transparent: true, opacity: 0, fog: false, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, rotation: 0.42 + i * 0.13 }));
-      sp.scale.set(30 + i * 18, 170 + i * 40, 1); sp.renderOrder = -8;
-      this.godRaySprites.push(sp); this.scene.add(sp);
-    }
-  }
+    // light-source disc — far back (beyond the castle), peeking above it. The
+    // GodRaysEffect requires it to be transparent and to not write depth.
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffe8c0, transparent: true, depthWrite: false, fog: false });
+    this.sunMesh = new THREE.Mesh(new THREE.SphereGeometry(22, 24, 24), sunMat);
+    this.sunMesh.position.copy(this.camera.position).addScaledVector(this.psun, 250);
+    this.scene.add(this.sunMesh);
 
-  private updateSunGodRays(): void {
-    const cam = this.camera.position;
-    for (const sp of this.sunSprites) sp.position.copy(cam).addScaledVector(this.psun, 760);
-    const sunAz = this.tmpA.set(this.psun.x, 0, this.psun.z).normalize();
-    const side = this.tmpB.set(sunAz.z, 0, -sunAz.x);
-    this.camera.getWorldDirection(this.tmpC); this.tmpC.y = 0; this.tmpC.normalize();
-    const facing = Math.max(0, this.tmpC.dot(sunAz));
-    for (let i = 0; i < this.godRaySprites.length; i++) {
-      const sp = this.godRaySprites[i];
-      const sway = Math.sin(this.time * 0.2 + i * 2.1) * 9;
-      sp.position.copy(cam).addScaledVector(sunAz, 38 + i * 22).addScaledVector(side, (i - 1.5) * 24 + sway);
-      sp.position.y = cam.y + 10 + i * 7;
-      (sp.material as THREE.SpriteMaterial).opacity = (0.28 + facing * facing * 0.32) * (1 - i * 0.1);
-    }
+    // The shafts come from a DARK occluder biting the sun (the hero's silhouette
+    // used to do this); on the right there's none, so a tree is placed on the
+    // camera->sun ray below. Keep the effect moderate — the edge does the work.
+    const godRays = new GodRaysEffect(this.camera, this.sunMesh, {
+      density: 0.97,
+      decay: 0.96,
+      weight: 0.72,
+      exposure: 0.8,
+      samples: 110,
+      clampMax: 1.0,
+      resolutionScale: 0.9,
+      kernelSize: KernelSize.LARGE,
+      blur: true,
+    });
+
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.composer.addPass(new EffectPass(this.camera, godRays));
+    // The full-screen backdrop often has no layout size yet at construction, so
+    // the composer's targets (and the GodRaysEffect's) would be created 0x0 and
+    // render an incomplete framebuffer (transparent canvas -> orange backdrop).
+    // Seed a valid size now; syncSize keeps it in sync afterwards.
+    this.composer.setSize(
+      Math.max(1, this.container.clientWidth || window.innerWidth || 1280),
+      Math.max(1, this.container.clientHeight || window.innerHeight || 720),
+    );
   }
 
   private animate = (): void => {
@@ -341,7 +432,6 @@ export class CharacterPreview {
 
     // keep the sky dome centred on the camera (it's an infinite backdrop)
     if (this.skyView) this.skyView.setCameraZ(this.camera.position.z, dt);
-    this.updateSunGodRays();
 
     // No auto-spin: the hero stands facing the camera (WoW-style); the player
     // can still turn it by dragging (see setupDragControls).
@@ -351,7 +441,12 @@ export class CharacterPreview {
       this.currentVisual.update(dt, PREVIEW_ANIM_STATE, true);
     }
 
-    this.renderer.render(this.scene, this.camera);
+    // only drive the post chain once the backdrop has a real size, otherwise the
+    // composer renders an incomplete (zero-size) framebuffer and the canvas goes
+    // transparent (showing the orange backdrop behind it)
+    if (this.container.clientWidth > 0 && this.container.clientHeight > 0) {
+      this.composer.render(dt);
+    }
   };
 
   /** Cleanup resources */
