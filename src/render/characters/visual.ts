@@ -97,6 +97,9 @@ export class CharacterVisual {
   private ghostMaterials = new Map<THREE.Material, THREE.Material>();
   private originalWeaponVisibility = new Map<THREE.Object3D, boolean>();
   private authoredBowNodes: THREE.Object3D[] = [];
+  private authoredBowScaleRoots: THREE.Object3D[] = [];
+  private authoredBowOriginalScales = new Map<THREE.Object3D, THREE.Vector3>();
+  private craftedBowMaterials = new Map<THREE.Material, THREE.Material>();
   private equippedWeapon: THREE.Object3D | null = null;
   private equippedWeaponTemplate: THREE.Object3D | null = null;
   private hideEquippedWeaponForHarvest = false;
@@ -151,7 +154,16 @@ export class CharacterVisual {
       const mesh = o as THREE.Mesh;
       if (mesh.isMesh) this.originalMaterials.set(mesh, mesh.material);
       if (isVisibleWeaponNode(o)) this.originalWeaponVisibility.set(o, o.visible);
-      if (/ranger_bow|bow/i.test(o.name)) this.authoredBowNodes.push(o);
+      if (/ranger_bow|bow/i.test(o.name)) {
+        this.authoredBowNodes.push(o);
+        this.authoredBowOriginalScales.set(o, o.scale.clone());
+      }
+    });
+    this.authoredBowScaleRoots = this.authoredBowNodes.filter((node) => {
+      for (let p = node.parent; p; p = p.parent) {
+        if (this.authoredBowNodes.includes(p)) return false;
+      }
+      return true;
     });
     this.modelWrap.rotation.y = prep.def.yaw ?? 0;
     this.modelWrap.scale.setScalar(prep.normScale);
@@ -385,14 +397,14 @@ export class CharacterVisual {
       return;
     }
     for (const [node, wasVisible] of this.originalWeaponVisibility) node.visible = active && !useAuthoredBow ? false : wasVisible;
+    if (!useAuthoredBow) this.applyAuthoredBowStyle(false);
     if (useAuthoredBow) {
       // Quaternius ranger already has a correctly socketed/animated bow on
-      // Weapon.R. The armaduras FBX bow has a different pivot/bounds and kept
-      // floating or reaching the floor. For hunter bows, use the authored bow
-      // as the held visual and keep custom FBX bows out of the hand. Do not
-      // reskin it for crafted/golden yet: all hunter weapon upgrades remain
-      // stat/item upgrades, but the archer keeps the default good-looking bow
-      // until we have an external bow model with a compatible pivot.
+      // Weapon.R. External bow models had incompatible pivots, so crafted/golden
+      // hunter weapons reuse the authored bow pose. The crafted bow gets a
+      // chunky purple skin on that stable default geometry.
+      const craftedPurpleBow = /bow_wooden|wooden/i.test(template.name);
+      this.applyAuthoredBowStyle(craftedPurpleBow);
       for (const node of this.authoredBowNodes) node.visible = true;
       if (this.equippedWeapon) this.equippedWeapon.visible = false;
       return;
@@ -427,6 +439,40 @@ export class CharacterVisual {
     this.equippedWeapon.scale.setScalar(transform.scale);
     this.equippedWeapon.position.set(transform.px ?? -0.05, transform.py ?? 0.085, transform.pz ?? -0.045);
     this.equippedWeapon.rotation.set(transform.rx ?? -3.03, transform.ry ?? 0, transform.rz ?? 1.57);
+  }
+
+  private applyAuthoredBowStyle(craftedPurple: boolean): void {
+    const scale = craftedPurple ? 1.32 : 1;
+    for (const node of this.authoredBowScaleRoots) {
+      const original = this.authoredBowOriginalScales.get(node);
+      if (original) node.scale.copy(original).multiplyScalar(scale);
+    }
+    for (const node of this.authoredBowNodes) {
+      node.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const original = this.originalMaterials.get(mesh);
+        if (!original) return;
+        if (!craftedPurple) {
+          mesh.material = original;
+          return;
+        }
+        const applyPurple = (mat: THREE.Material): THREE.Material => {
+          let purple = this.craftedBowMaterials.get(mat);
+          if (!purple) {
+            purple = mat.clone();
+            const maybeColored = purple as THREE.MeshStandardMaterial | THREE.MeshPhongMaterial;
+            if ('color' in maybeColored) maybeColored.color.setHex(0x8b2cff);
+            if ('emissive' in maybeColored) maybeColored.emissive.setHex(0x240044);
+            if ('roughness' in maybeColored) maybeColored.roughness = 0.55;
+            if ('metalness' in maybeColored) maybeColored.metalness = 0.18;
+            this.craftedBowMaterials.set(mat, purple);
+          }
+          return purple;
+        };
+        mesh.material = Array.isArray(original) ? original.map(applyPurple) : applyPurple(original);
+      });
+    }
   }
 
   private cloneEquippedWeapon(template: THREE.Object3D): THREE.Object3D {
