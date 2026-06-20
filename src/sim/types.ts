@@ -538,6 +538,7 @@ export interface SimConfig {
   autoEquip?: boolean; // auto-equip better gear on loot (headless convenience)
   playerName?: string;
   noPlayer?: boolean; // multiplayer server: start with an empty world and addPlayer() later
+  rewardMultiplier?: number; // Premium realms can boost XP/gold rewards.
 }
 
 export function emptyMoveInput(): MoveInput {

@@ -35,19 +35,26 @@ export type RealmType = 'Normal' | 'PvP' | 'RP' | 'RP-PvP';
 export interface RealmEntry {
   name: string;
   url: string;
-  type: RealmType;
+  type: RealmType | 'Premium';
+  premium?: boolean;
+  minVaeloria?: number;
 }
 
 export interface RealmDirectory {
   current: string;
   realms: RealmEntry[];
   characters: Record<string, number>; // realm name -> how many characters you have
+  vaeloriaHoldings: number;
+  premiumMinVaeloria: number;
 }
 
 export class Api {
   token: string | null = null;
   username: string | null = null;
   solanaWallet: string | null = null;
+  privyDisplayName: string | null = null;
+  privyAvatarUrl: string | null = null;
+  privyTwitterUsername: string | null = null;
   realm: string | null = null;
   // base origin for realm-scoped calls (characters, search, ws). '' = the page
   // origin; set to another realm's origin when the player picks a realm
@@ -62,11 +69,11 @@ export class Api {
   async realms(): Promise<RealmDirectory> {
     try {
       const res = await fetch('/api/realms', { headers: this.token ? { Authorization: `Bearer ${this.token}` } : {} });
-      if (!res.ok) return { current: '', realms: [], characters: {} };
+      if (!res.ok) return { current: '', realms: [], characters: {}, vaeloriaHoldings: 0, premiumMinVaeloria: 1000 };
       const d = await res.json();
-      return { current: d.current ?? '', realms: d.realms ?? [], characters: d.characters ?? {} };
+      return { current: d.current ?? '', realms: d.realms ?? [], characters: d.characters ?? {}, vaeloriaHoldings: Number(d.vaeloriaHoldings ?? 0), premiumMinVaeloria: Number(d.premiumMinVaeloria ?? 1000) };
     } catch {
-      return { current: '', realms: [], characters: {} };
+      return { current: '', realms: [], characters: {}, vaeloriaHoldings: 0, premiumMinVaeloria: 1000 };
     }
   }
 
@@ -113,10 +120,13 @@ export class Api {
     throw new Error('Classic username/password login is disabled. Use Privy Solana login.');
   }
 
-  usePrivySession(session: { token: string; username: string; solanaWallet: string }): void {
+  usePrivySession(session: { token: string; username: string; solanaWallet: string; privyDisplayName?: string; privyAvatarUrl?: string; privyTwitterUsername?: string }): void {
     this.token = session.token;
     this.username = session.username;
     this.solanaWallet = session.solanaWallet;
+    this.privyDisplayName = session.privyDisplayName ?? null;
+    this.privyAvatarUrl = session.privyAvatarUrl ?? null;
+    this.privyTwitterUsername = session.privyTwitterUsername ?? null;
   }
 
   async characters(): Promise<CharacterSummary[]> {
@@ -651,6 +661,12 @@ export class ClientWorld implements IWorld {
   }
   sellItem(itemId: string): void {
     this.cmd({ cmd: 'sell', item: itemId });
+  }
+  marketplaceLockItem(itemId: string): void {
+    this.cmd({ cmd: 'market_lock', item: itemId });
+  }
+  marketplaceRestoreItem(itemId: string): void {
+    this.cmd({ cmd: 'market_restore', item: itemId });
   }
   releaseSpirit(): void {
     this.cmd({ cmd: 'release' });

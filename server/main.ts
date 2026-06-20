@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import {
-  ensureSchema, pool, saveToken, accountForToken,
+  ensureSchema, pool, saveToken, accountForToken, accountById,
   listCharacters, getCharacter, createCharacter, deleteCharacter, closeOrphanSessions,
   pruneChatLogs, searchCharacters, characterCountsByRealm, moderationStatusForAccount, renameCharacter,
   findCharacterReportTargetByName, upsertPrivyAccount,
@@ -11,18 +11,50 @@ import {
 import { cleanReportReason, createPlayerReport } from './moderation_db';
 import { resolveReportTarget } from './report_target';
 import { newToken, validCharName } from './auth';
-import { verifyPrivyRequest, validSolanaAddress, verifiedPrivySolanaWallet } from './privy';
+import { verifyPrivyRequest, validSolanaAddress, verifiedPrivySolanaWallet, privyUserProfile } from './privy';
 import { json, readBody } from './http_util';
 import { rateLimited } from './ratelimit';
 import { handleAdminApi } from './admin';
 import { GameServer } from './game';
-import { REALM, REALM_DIRECTORY, REALM_ORIGINS } from './realm';
+import { REALM, REALM_DIRECTORY, REALM_ORIGINS, IS_PREMIUM_REALM, PREMIUM_REALM_MIN_VAELORIA } from './realm';
 import { cacheControlFor, etagFor, isNotModified } from './static_cache';
 
 const PORT = Number(process.env.PORT ?? 8787);
 const STATIC_DIR = path.join(__dirname, '..', 'dist');
 // How long chat logs are kept (0 = forever); pruned at boot and daily.
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
+const VAELORIA_TOKEN_MINT = (process.env.VAELORIA_TOKEN_MINT ?? '').trim();
+const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+
+async function vaeloriaHoldingsForWallet(wallet: string | null | undefined): Promise<number> {
+  if (!wallet || !VAELORIA_TOKEN_MINT || VAELORIA_TOKEN_MINT.includes('111111111111')) return 0;
+  try {
+    const res = await fetch(SOLANA_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 'vaeloria-server-holdings', method: 'getTokenAccountsByOwner',
+        params: [wallet, { mint: VAELORIA_TOKEN_MINT }, { encoding: 'jsonParsed' }],
+      }),
+    });
+    const data = await res.json();
+    const accounts = Array.isArray(data?.result?.value) ? data.result.value : [];
+    return accounts.reduce((sum: number, a: any) => sum + Number(a?.account?.data?.parsed?.info?.tokenAmount?.uiAmount ?? 0), 0);
+  } catch {
+    return 0;
+  }
+}
+
+async function vaeloriaHoldingsForAccount(accountId: number | null): Promise<number> {
+  if (accountId === null) return 0;
+  const account = await accountById(accountId);
+  return vaeloriaHoldingsForWallet(account?.solana_wallet);
+}
+
+async function premiumAllowed(accountId: number | null): Promise<boolean> {
+  if (!IS_PREMIUM_REALM) return true;
+  return (await vaeloriaHoldingsForAccount(accountId)) >= PREMIUM_REALM_MIN_VAELORIA;
+}
 
 const game = new GameServer();
 
@@ -161,20 +193,29 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
         const walletBelongsToUser = await verifiedPrivySolanaWallet(verified.userId, body.solanaWallet);
         if (!walletBelongsToUser) return json(res, 403, { error: 'Solana wallet is not linked to this Privy user' });
         const account = await upsertPrivyAccount(verified.userId, body.solanaWallet);
+        const profile = await privyUserProfile(verified.userId).catch(() => ({ displayName: undefined, avatarUrl: undefined, twitterUsername: undefined }));
         const status = await moderationStatusForAccount(account.id);
         if (status.locked) return json(res, 403, { error: status.message });
         const token = newToken();
         await saveToken(token, account.id);
-        return json(res, 200, { token, username: account.username, solanaWallet: account.solana_wallet ?? body.solanaWallet });
+        return json(res, 200, {
+          token,
+          username: account.username,
+          solanaWallet: account.solana_wallet ?? body.solanaWallet,
+          privyDisplayName: profile.displayName,
+          privyAvatarUrl: profile.avatarUrl,
+          privyTwitterUsername: profile.twitterUsername,
+        });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         return json(res, 401, { error: message || 'Privy authentication failed' });
       }
     }
     if (url === '/api/characters') {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      if (req.method === 'GET') {
+    const accountId = await bearerActiveAccount(req, res);
+    if (accountId === null) return;
+    if (!(await premiumAllowed(accountId))) return json(res, 403, { error: `VAELORIA Premium requires ${PREMIUM_REALM_MIN_VAELORIA.toLocaleString()}+ VAELORIA in your Privy wallet.` });
+if (req.method === 'GET') {
         const chars = await listCharacters(accountId);
         return json(res, 200, {
           realm: REALM,
@@ -236,7 +277,8 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       // characters the account has on each realm (for the realm-list screen)
       const accountId = await bearerAccount(req);
       const characters = accountId !== null ? await characterCountsByRealm(accountId) : {};
-      return json(res, 200, { current: REALM, realms: REALM_DIRECTORY, characters });
+      const vaeloriaHoldings = await vaeloriaHoldingsForAccount(accountId);
+      return json(res, 200, { current: REALM, realms: REALM_DIRECTORY, characters, vaeloriaHoldings, premiumMinVaeloria: PREMIUM_REALM_MIN_VAELORIA });
     }
     if (req.method === 'GET' && url === '/api/search') {
       const accountId = await bearerAccount(req);
@@ -362,6 +404,11 @@ async function main(): Promise<void> {
     const accountId = await accountForToken(token);
     if (accountId === null || !Number.isFinite(characterId)) {
       ws.send(JSON.stringify({ t: 'error', error: 'not authenticated' }));
+      ws.close();
+      return;
+    }
+    if (!(await premiumAllowed(accountId))) {
+      ws.send(JSON.stringify({ t: 'error', error: `VAELORIA Premium requires ${PREMIUM_REALM_MIN_VAELORIA.toLocaleString()}+ VAELORIA in your Privy wallet.` }));
       ws.close();
       return;
     }

@@ -22,6 +22,11 @@ import {
   GOLDEN_WEAPON_COST, NORMAL_WEAPON_COST,
 } from '../sim/content/crafting';
 import { distanceToTutorialLakeLocal, isInTutorialLakeLocal, TUTORIAL_TREE, TUTORIAL_TREE_KEY } from '../sim/content/tutorial_resources';
+import {
+  cancelGameListing, createGameListing, itemRegistryEntry, loadAllMarketplaceListings, loadMarketplaceListings, marketableInventory, marketplaceCategories,
+  saveMarketplaceListings,
+} from '../marketplace/registry';
+import type { MarketplaceCategory, MarketplaceCurrency, MarketplaceListing } from '../marketplace/registry';
 
 // hooks main wires after Input exists (the options menu drives input, audio,
 // graphics, and logout, all of which live outside the HUD)
@@ -35,6 +40,15 @@ export interface OptionsHooks {
 export interface ReportHooks {
   submit(targetPid: number, reason: string, details: string): Promise<void>;
   submitByName?(targetName: string, reason: string, details: string): Promise<void>;
+}
+
+export interface WalletProfileInfo {
+  username: string | null;
+  solanaWallet: string | null;
+  realm: string | null;
+  privyDisplayName?: string | null;
+  privyAvatarUrl?: string | null;
+  privyTwitterUsername?: string | null;
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector(sel) as T;
@@ -109,10 +123,13 @@ export class Hud {
   // highlighted row (-1 = none), so Enter/Arrow keys can pick a suggestion
   private socialSuggest: { field: string; items: { name: string; cls: string; level: number }[]; index: number } = { field: '', items: [], index: -1 };
   private readonly harvestableTrees: { key: string; x: number; z: number }[];
+  private marketplaceListings: MarketplaceListing[] = [];
+  private marketplaceCategory: MarketplaceCategory | 'all' = 'all';
+  private marketplaceCurrency: MarketplaceCurrency | 'all' = 'all';
 
   private meters: Meters;
 
-  constructor(private sim: IWorld, private renderer: Renderer, private keybinds: Keybinds) {
+  constructor(private sim: IWorld, private renderer: Renderer, private keybinds: Keybinds, private profileInfo?: () => WalletProfileInfo) {
     this.harvestableTrees = generateDecorations(sim.cfg.seed)
       .filter(isVisibleTreeDecoration)
       .map((d) => ({ key: treePromptKey(d.x, d.z), x: d.x, z: d.z }));
@@ -148,6 +165,8 @@ export class Hud {
     $('#mm-map').addEventListener('click', () => this.toggleMap());
     $('#mm-bag').addEventListener('click', () => this.toggleBags());
     $('#social-fab').addEventListener('click', () => this.toggleSocial());
+    $('#profile-btn')?.addEventListener('click', () => this.toggleProfile());
+    $('#marketplace-btn')?.addEventListener('click', () => this.toggleMarketplace());
     const musicBtn = $('#mm-music');
     const styleMusicBtn = () => { musicBtn.style.color = music.enabled ? '#ffd100' : '#666'; };
     styleMusicBtn();
@@ -1467,6 +1486,321 @@ export class Hud {
   }
 
   // -------------------------------------------------------------------------
+  // Marketplace UX
+  // -------------------------------------------------------------------------
+
+  toggleMarketplace(): void {
+    const el = $('#marketplace-window');
+    if (el.style.display === 'block') { el.style.display = 'none'; this.hideTooltip(); return; }
+    this.marketplaceListings = loadMarketplaceListings();
+    this.renderMarketplace();
+    el.style.display = 'block';
+  }
+
+  private marketplaceWallet(): string {
+    return this.profileSnapshot().solanaWallet || '';
+  }
+
+  private removeInventoryForMarketplace(itemId: string): boolean {
+    const before = this.sim.inventory.find((s) => s.itemId === itemId)?.count ?? 0;
+    if (before <= 0) return false;
+    this.sim.marketplaceLockItem(itemId);
+    const after = this.sim.inventory.find((s) => s.itemId === itemId)?.count ?? 0;
+    // Offline Sim mutates synchronously; online ClientWorld sends a server cmd,
+    // so we also update the mirrored bag immediately for correct UX until the
+    // authoritative snapshot arrives.
+    if (after === before) {
+      const slot = this.sim.inventory.find((s) => s.itemId === itemId && s.count > 0);
+      if (!slot) return false;
+      slot.count -= 1;
+      if (slot.count <= 0) this.sim.inventory.splice(this.sim.inventory.indexOf(slot), 1);
+    }
+    this.onInventoryChanged();
+    return true;
+  }
+
+  private restoreInventoryFromMarketplace(itemId: string): void {
+    const before = this.sim.inventory.find((s) => s.itemId === itemId)?.count ?? 0;
+    this.sim.marketplaceRestoreItem(itemId);
+    const after = this.sim.inventory.find((s) => s.itemId === itemId)?.count ?? 0;
+    if (after === before) {
+      const slot = this.sim.inventory.find((s) => s.itemId === itemId);
+      if (slot) slot.count += 1;
+      else this.sim.inventory.push({ itemId, count: 1 });
+    }
+    this.onInventoryChanged();
+  }
+
+  private async fetchSolBalance(wallet: string): Promise<string> {
+    try {
+      const rpcUrl = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'https://api.mainnet-beta.solana.com';
+      const res = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 'vaeloria-profile', method: 'getBalance', params: [wallet] }),
+      });
+      const data = await res.json();
+      const lamports = Number(data?.result?.value ?? 0);
+      if (!Number.isFinite(lamports)) return 'Unavailable';
+      return `${(lamports / 1_000_000_000).toFixed(4)} SOL`;
+    } catch {
+      return 'Unavailable';
+    }
+  }
+
+  private async fetchVaeloriaHoldings(wallet: string): Promise<string> {
+    const mint = (import.meta.env.VITE_VAELORIA_TOKEN_MINT as string | undefined) || '';
+    if (!mint || mint.includes('111111111111')) return 'Token mint not configured yet';
+    try {
+      const rpcUrl = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'https://api.mainnet-beta.solana.com';
+      const res = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 'vaeloria-holdings', method: 'getTokenAccountsByOwner',
+          params: [wallet, { mint }, { encoding: 'jsonParsed' }],
+        }),
+      });
+      const data = await res.json();
+      const accounts = Array.isArray(data?.result?.value) ? data.result.value : [];
+      const total = accounts.reduce((sum: number, a: any) => sum + Number(a?.account?.data?.parsed?.info?.tokenAmount?.uiAmount ?? 0), 0);
+      return `${total.toLocaleString(undefined, { maximumFractionDigits: 4 })} VAELORIA`;
+    } catch {
+      return 'Unavailable';
+    }
+  }
+
+  toggleProfile(): void {
+    const el = $('#profile-window');
+    if (el.style.display === 'block') { el.style.display = 'none'; this.hideTooltip(); return; }
+    this.renderProfile('Loading balance...', 'Loading holdings...');
+    el.style.display = 'block';
+    const wallet = this.profileSnapshot().solanaWallet;
+    if (wallet) {
+      void Promise.all([this.fetchSolBalance(wallet), this.fetchVaeloriaHoldings(wallet)]).then(([balance, holdings]) => {
+        if ($('#profile-window').style.display === 'block') this.renderProfile(balance, holdings);
+      });
+    }
+  }
+
+  private profileSnapshot(): WalletProfileInfo {
+    const live = this.profileInfo?.();
+    let saved: Partial<WalletProfileInfo> = {};
+    try { saved = JSON.parse(localStorage.getItem('vaeloria_privy_profile') || '{}') as Partial<WalletProfileInfo>; } catch {}
+    return {
+      username: live?.username ?? saved.username ?? null,
+      solanaWallet: live?.solanaWallet ?? saved.solanaWallet ?? null,
+      realm: live?.realm ?? saved.realm ?? null,
+      privyDisplayName: live?.privyDisplayName ?? saved.privyDisplayName ?? null,
+      privyAvatarUrl: live?.privyAvatarUrl ?? saved.privyAvatarUrl ?? null,
+      privyTwitterUsername: live?.privyTwitterUsername ?? saved.privyTwitterUsername ?? null,
+    };
+  }
+
+  private renderProfile(balanceText: string, holdingsText = 'Token mint not configured yet'): void {
+    const info = this.profileSnapshot();
+    const wallet = info.solanaWallet;
+    const all = loadAllMarketplaceListings();
+    const mine = wallet ? all.filter((l) => l.seller === wallet) : [];
+    const active = mine.filter((l) => l.status === 'active');
+    const sold = mine.filter((l) => l.status === 'sold');
+    const listRows = (items: MarketplaceListing[], empty: string): string => items.length ? items.map((l) => {
+      const item = ITEMS[l.itemId];
+      return `<div class="market-row" style="grid-template-columns:30px 1fr auto">
+        <img class="item-icon q-${item?.quality ?? 'common'}" src="${iconDataUrl('item', l.itemId)}" alt="">
+        <div><div class="market-name">${esc(item?.name ?? l.itemId)}</div><div class="market-meta">${esc(l.status)}</div></div>
+        <div class="market-price">${l.price.toFixed(2)} ${l.currency}</div>
+      </div>`;
+    }).join('') : `<div class="market-meta">${esc(empty)}</div>`;
+
+    const el = $('#profile-window');
+    el.innerHTML = `
+      <div class="panel-title">Wallet Profile <button class="x-btn" data-close>×</button></div>
+      <div class="profile-grid">
+        <div class="profile-card">
+          <div class="profile-label">Privy account</div>
+          <div class="profile-head">
+            ${info.privyAvatarUrl ? `<img class="profile-avatar" src="${esc(info.privyAvatarUrl)}" alt="Profile avatar">` : '<div class="profile-avatar"></div>'}
+            <div>
+              <div class="profile-value">${esc(info.privyDisplayName ?? info.username ?? 'Not connected')}</div>
+              <div class="profile-note">${info.privyTwitterUsername ? `Twitter/X @${esc(info.privyTwitterUsername)}` : esc(info.username ?? 'Privy session not loaded')}</div>
+            </div>
+          </div>
+          <div class="profile-note">This profile is tied to the Privy Solana wallet created/linked at login.</div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-label">Wallet SOL</div>
+          <div class="profile-value">${wallet ? esc(balanceText) : 'No wallet connected'}</div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-label">VAELORIA holdings</div>
+          <div class="profile-value">${wallet ? esc(holdingsText) : 'No wallet connected'}</div>
+          <div class="profile-note">Premium realm access requires 1,000+ VAELORIA in this Privy wallet.</div>
+        </div>
+        <div class="profile-card" style="grid-column:1 / -1">
+          <div class="profile-label">Wallet address</div>
+          <div class="profile-value">${esc(wallet ?? 'No wallet connected')}</div>
+          <button class="btn" data-copy-wallet ${wallet ? '' : 'disabled'}>Copy address</button>
+          <button class="btn" data-export-wallet ${wallet ? '' : 'disabled'}>Export private key</button>
+        </div>
+        <div class="profile-card">
+          <div class="profile-label">Items posted for sale</div>
+          <div class="market-list" style="max-height:180px">${listRows(active, 'No active items listed from this wallet.')}</div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-label">Sold items</div>
+          <div class="market-list" style="max-height:180px">${listRows(sold, 'No sold items yet.')}</div>
+        </div>
+      </div>
+    `;
+    el.querySelector('[data-close]')?.addEventListener('click', () => { el.style.display = 'none'; });
+    el.querySelector('[data-copy-wallet]')?.addEventListener('click', () => {
+      if (!wallet) return;
+      void navigator.clipboard?.writeText(wallet);
+      this.showError('Wallet address copied.');
+    });
+    el.querySelector('[data-export-wallet]')?.addEventListener('click', () => {
+      if (!wallet) return;
+      const exportFn = window.__vaeloriaExportPrivyWallet;
+      if (!exportFn) { this.showError('Privy export is not ready. Refresh and login with Privy again.'); return; }
+      void exportFn(wallet).catch((err: unknown) => {
+        this.showError(err instanceof Error ? err.message : 'Could not open Privy export modal.');
+      });
+    });
+  }
+
+  private renderMarketplace(): void {
+    const el = $('#marketplace-window');
+    const categories = marketplaceCategories(this.marketplaceListings, this.sim.inventory);
+    const listings = this.marketplaceListings
+      .filter((l) => l.status === 'active')
+      .filter((l) => this.marketplaceCurrency === 'all' || l.currency === this.marketplaceCurrency)
+      .filter((l) => this.marketplaceCategory === 'all' || itemRegistryEntry(l.itemId)?.category === this.marketplaceCategory)
+      .sort((a, b) => a.price - b.price);
+    const sellItems = marketableInventory(this.sim.inventory);
+    const option = (value: string, label: string, selected: boolean): string => `<option value="${esc(value)}" ${selected ? 'selected' : ''}>${esc(label)}</option>`;
+    const listingHtml = listings.length ? listings.map((l) => this.marketListingHtml(l)).join('') : '<div class="market-meta">No active listings for these filters.</div>';
+    const sellHtml = sellItems.length ? sellItems.map((item) => `
+      <div class="market-sell-row" data-sell-item="${esc(item.itemId)}">
+        <div style="display:flex;gap:8px;align-items:center">
+          <img class="item-icon q-${item.quality}" src="${iconDataUrl('item', item.itemId)}" alt="">
+          <div style="min-width:0;flex:1">
+            <div class="market-name" style="color:${QUALITY_COLOR[item.quality] ?? '#fff'}">${esc(item.name)} ${item.count > 1 ? `x${item.count}` : ''}</div>
+            <div class="market-meta"><span class="market-pill">${esc(item.category)}</span><span class="market-pill">Game item</span></div>
+          </div>
+        </div>
+        <div class="market-sell-form">
+          <input type="number" min="1" step="1" value="100" data-sell-price>
+          <select data-sell-currency disabled>
+            <option value="GOLD">Gold</option>
+          </select>
+          <button class="btn" data-sell-submit>Post</button>
+        </div>
+      </div>`).join('') : '<div class="market-meta">No tradable items in your inventory yet.</div>';
+
+    el.innerHTML = `
+      <div class="panel-title">Vaeloria Marketplace <button class="x-btn" data-close>×</button></div>
+      <div class="market-status">
+        Player marketplace: post items for sale using normal in-game gold. Listed items leave your inventory until sold or cancelled.
+      </div>
+      <div class="market-wrap">
+        <div class="market-pane">
+          <div class="market-controls">
+            <select data-market-category>
+              ${option('all', 'All categories', this.marketplaceCategory === 'all')}
+              ${categories.map((c) => option(c, cap(c), this.marketplaceCategory === c)).join('')}
+            </select>
+            <select data-market-currency>
+              ${option('all', 'All currencies', this.marketplaceCurrency === 'all')}
+              ${option('GOLD', 'Gold', this.marketplaceCurrency === 'GOLD')}
+            </select>
+            <button class="btn" data-market-refresh>Refresh</button>
+          </div>
+          <div class="market-list">${listingHtml}</div>
+        </div>
+        <div class="market-pane">
+          <div class="market-name" style="margin-bottom:4px;color:#ffd15c">Post from inventory</div>
+          <div class="market-status">Choose a price in game gold. The item is removed from your inventory while posted and returns if you cancel.</div>
+          <div class="market-sell-list">${sellHtml}</div>
+        </div>
+      </div>
+    `;
+    el.querySelector('[data-close]')?.addEventListener('click', () => { el.style.display = 'none'; });
+    el.querySelector<HTMLSelectElement>('[data-market-category]')?.addEventListener('change', (ev) => {
+      const select = ev.currentTarget as HTMLSelectElement;
+      this.marketplaceCategory = select.value as MarketplaceCategory | 'all';
+      this.renderMarketplace();
+    });
+    el.querySelector<HTMLSelectElement>('[data-market-currency]')?.addEventListener('change', (ev) => {
+      const select = ev.currentTarget as HTMLSelectElement;
+      this.marketplaceCurrency = select.value as MarketplaceCurrency | 'all';
+      this.renderMarketplace();
+    });
+    el.querySelector('[data-market-refresh]')?.addEventListener('click', () => {
+      this.marketplaceListings = loadMarketplaceListings();
+      this.renderMarketplace();
+    });
+    el.querySelectorAll<HTMLButtonElement>('[data-buy-listing]').forEach((btn) => {
+      btn.addEventListener('click', () => this.buyPreparedListing(btn.dataset.buyListing ?? ''));
+    });
+    el.querySelectorAll<HTMLButtonElement>('[data-cancel-listing]').forEach((btn) => {
+      btn.addEventListener('click', () => this.cancelOwnMarketplaceListing(btn.dataset.cancelListing ?? ''));
+    });
+    el.querySelectorAll<HTMLElement>('[data-sell-item]').forEach((row) => {
+      row.querySelector('[data-sell-submit]')?.addEventListener('click', () => {
+        const itemId = row.dataset.sellItem ?? '';
+        const price = Math.max(1, Math.round(Number((row.querySelector('[data-sell-price]') as HTMLInputElement | null)?.value ?? 0)));
+        const seller = this.profileSnapshot().username || this.marketplaceWallet() || 'local-player';
+        if (!this.removeInventoryForMarketplace(itemId)) { this.showError('That item is no longer in your inventory.'); return; }
+        const result = createGameListing({ listings: this.marketplaceListings, itemId, seller, price });
+        this.marketplaceListings = result.listings;
+        saveMarketplaceListings(this.marketplaceListings);
+        this.showError(`${ITEMS[itemId]?.name ?? itemId} posted for ${price} gold.`);
+        this.renderMarketplace();
+      });
+    });
+  }
+
+  private marketListingHtml(listing: MarketplaceListing): string {
+    const entry = itemRegistryEntry(listing.itemId);
+    const item = ITEMS[listing.itemId];
+    const quality = entry?.quality ?? item?.quality ?? 'common';
+    const seller = this.profileSnapshot().username || this.marketplaceWallet() || 'local-player';
+    const isMine = seller && listing.seller === seller;
+    return `
+      <div class="market-row">
+        <img class="item-icon q-${quality}" src="${iconDataUrl('item', listing.itemId)}" alt="">
+        <div style="min-width:0">
+          <div class="market-name" style="color:${QUALITY_COLOR[quality] ?? '#fff'}">${esc(item?.name ?? listing.itemId)}</div>
+          <div class="market-meta"><span class="market-pill">${esc(entry?.category ?? 'misc')}</span><span class="market-pill">${esc(quality)}</span><br>Seller ${esc(listing.seller)}</div>
+        </div>
+        <div class="market-price">
+          ${listing.price.toFixed(0)} gold<br>
+          ${isMine ? `<button class="btn" data-cancel-listing="${esc(listing.id)}">Cancel</button>` : `<button class="btn" data-buy-listing="${esc(listing.id)}">Buy</button>`}
+        </div>
+      </div>`;
+  }
+
+  private buyPreparedListing(listingId: string): void {
+    const listing = this.marketplaceListings.find((l) => l.id === listingId);
+    if (!listing) return;
+    this.showError(`Buy order ready: ${ITEMS[listing.itemId]?.name ?? listing.itemId} for ${listing.price.toFixed(0)} gold.`);
+  }
+
+  private cancelOwnMarketplaceListing(listingId: string): void {
+    const seller = this.profileSnapshot().username || this.marketplaceWallet() || 'local-player';
+    const listing = this.marketplaceListings.find((l) => l.id === listingId);
+    if (!listing || listing.seller !== seller) return;
+    const result = cancelGameListing(this.marketplaceListings, listingId);
+    if (!result.listing) return;
+    this.marketplaceListings = result.listings;
+    saveMarketplaceListings(this.marketplaceListings);
+    this.restoreInventoryFromMarketplace(result.listing.itemId);
+    this.showError(`${ITEMS[result.listing.itemId]?.name ?? result.listing.itemId} returned to inventory.`);
+    this.renderMarketplace();
+  }
+
+  // -------------------------------------------------------------------------
   // Crafting table
   // -------------------------------------------------------------------------
 
@@ -2755,7 +3089,7 @@ export class Hud {
       this.sim.tradeCancel();
       closed = true;
     }
-    for (const id of ['#quest-dialog', '#loot-window', '#vendor-window', '#bags', '#char-window', '#spellbook', '#quest-log-window', '#map-window', '#report-window']) {
+    for (const id of ['#quest-dialog', '#loot-window', '#vendor-window', '#marketplace-window', '#profile-window', '#bags', '#char-window', '#spellbook', '#quest-log-window', '#map-window', '#report-window']) {
       const el = $(id);
       if (el.style.display === 'block') {
         el.style.display = 'none';

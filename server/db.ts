@@ -195,6 +195,11 @@ export async function accountForToken(token: string): Promise<number | null> {
   return res.rows[0]?.account_id ?? null;
 }
 
+export async function accountById(accountId: number): Promise<AccountRow | null> {
+  const res = await pool.query('SELECT id, username, password_hash, privy_user_id, solana_wallet, auth_provider FROM accounts WHERE id = $1', [accountId]);
+  return res.rows[0] ?? null;
+}
+
 export async function moderationStatusForAccount(accountId: number): Promise<AccountModerationStatus> {
   const res = await pool.query(
     `SELECT banned_at, suspended_until, moderation_reason

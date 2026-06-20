@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { PrivyProvider, usePrivy } from '@privy-io/react-auth';
-import { toSolanaWalletConnectors, useCreateWallet, useWallets } from '@privy-io/react-auth/solana';
+import { toSolanaWalletConnectors, useCreateWallet, useExportWallet, useWallets } from '@privy-io/react-auth/solana';
 import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
 
 export interface PrivyRealmSession {
   token: string;
   username: string;
   solanaWallet: string;
+  privyDisplayName?: string;
+  privyAvatarUrl?: string;
+  privyTwitterUsername?: string;
 }
 
 interface PrivyRealmLoginProps {
@@ -19,6 +22,12 @@ const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
 const PRIVY_CLIENT_ID = import.meta.env.VITE_PRIVY_CLIENT_ID as string | undefined;
 const SOLANA_RPC_URL = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'https://api.mainnet-beta.solana.com';
 const SOLANA_RPC_WS_URL = (import.meta.env.VITE_SOLANA_RPC_WS_URL as string | undefined) || 'wss://api.mainnet-beta.solana.com';
+
+declare global {
+  interface Window {
+    __vaeloriaExportPrivyWallet?: (address?: string) => Promise<void>;
+  }
+}
 
 async function createRealmSession(accessToken: string, solanaWallet: string): Promise<PrivyRealmSession> {
   const res = await fetch('/api/privy-login', {
@@ -67,10 +76,41 @@ function solanaAddressOfCreatedWallet(created: unknown): string | null {
   return solanaAddressFromWalletHook((created as { wallet?: unknown }).wallet) ?? solanaAddressFromWalletHook(created);
 }
 
+function stringField(obj: Record<string, unknown>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = obj[key];
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return undefined;
+}
+
+function privyProfileFromUser(user: unknown): Pick<PrivyRealmSession, 'privyDisplayName' | 'privyAvatarUrl' | 'privyTwitterUsername'> {
+  const u = (user ?? {}) as Record<string, unknown>;
+  const linked = Array.isArray(u.linkedAccounts) ? u.linkedAccounts as unknown[] : [];
+  const twitter = linked.map((x) => x as Record<string, unknown>).find((x) => {
+    const type = String(x.type ?? '').toLowerCase();
+    const provider = String(x.provider ?? x.providerId ?? '').toLowerCase();
+    return type.includes('twitter') || type.includes('x') || provider.includes('twitter') || provider === 'x';
+  });
+  const displayName = twitter
+    ? stringField(twitter, ['name', 'displayName', 'display_name', 'fullName', 'username'])
+    : undefined;
+  const twitterUsername = twitter ? stringField(twitter, ['username', 'screenName', 'screen_name', 'handle']) : undefined;
+  const avatarUrl = twitter
+    ? stringField(twitter, ['profilePictureUrl', 'profile_picture_url', 'profileImageUrl', 'profile_image_url', 'avatarUrl', 'pictureUrl'])
+    : undefined;
+  return {
+    privyDisplayName: displayName ?? stringField(u, ['name', 'displayName', 'username']),
+    privyTwitterUsername: twitterUsername,
+    privyAvatarUrl: avatarUrl ?? stringField(u, ['profilePictureUrl', 'profileImageUrl', 'avatarUrl', 'pictureUrl']),
+  };
+}
+
 function PrivyRealmLogin({ onAuthenticated, onError }: PrivyRealmLoginProps): React.ReactElement {
   const { ready, authenticated, login, logout, user, getAccessToken } = usePrivy();
   const { ready: walletsReady, wallets } = useWallets();
   const { createWallet } = useCreateWallet();
+  const { exportWallet } = useExportWallet();
   const [busy, setBusy] = useState(false);
   const [linked, setLinked] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
@@ -102,8 +142,10 @@ function PrivyRealmLogin({ onAuthenticated, onError }: PrivyRealmLoginProps): Re
       const accessToken = await getAccessToken();
       if (!accessToken) throw new Error('Privy did not return an access token.');
       const session = await createRealmSession(accessToken, wallet);
+      const enrichedSession: PrivyRealmSession = { ...session, solanaWallet: wallet, ...privyProfileFromUser(user) };
+      try { localStorage.setItem('vaeloria_privy_profile', JSON.stringify(enrichedSession)); } catch {}
       setLinked(true);
-      await onAuthenticated(session);
+      await onAuthenticated(enrichedSession);
     } catch (err: unknown) {
       setAuthFailed(true);
       onError(err instanceof Error ? err.message : String(err));
@@ -116,6 +158,17 @@ function PrivyRealmLogin({ onAuthenticated, onError }: PrivyRealmLoginProps): Re
   useEffect(() => {
     void linkAndEnterRealm();
   }, [linkAndEnterRealm]);
+
+  useEffect(() => {
+    window.__vaeloriaExportPrivyWallet = async (address?: string) => {
+      if (!ready || !authenticated) throw new Error('Login with Privy before exporting your wallet.');
+      const target = address || solanaWallet || undefined;
+      await exportWallet(target ? { address: target } : undefined);
+    };
+    return () => {
+      if (window.__vaeloriaExportPrivyWallet) delete window.__vaeloriaExportPrivyWallet;
+    };
+  }, [ready, authenticated, solanaWallet, exportWallet]);
 
   const label = !ready
     ? 'Loading Privy...'

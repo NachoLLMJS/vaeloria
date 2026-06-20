@@ -119,6 +119,8 @@ export interface IWorld {
   craftClassWeapon(tier: 'normal' | 'golden'): void;
   buyItem(npcId: number, itemId: string): void;
   sellItem(itemId: string): void;
+  marketplaceLockItem(itemId: string): void;
+  marketplaceRestoreItem(itemId: string): void;
   releaseSpirit(): void;
   chat(text: string): void;
   // social systems

@@ -6,11 +6,11 @@ import { DT, Entity, SimEvent, dist2d } from '../src/sim/types';
 import { stealthDetectionRadius, threatEntries } from '../src/sim/threat';
 import { zoneAt, DUNGEONS } from '../src/sim/data';
 import { saveCharacterState, openPlaySession, closePlaySession, insertChatLogs, pool } from './db';
+import { REALM, REALM_REWARD_MULTIPLIER } from './realm';
 import { ChatLogger } from './chat_log';
 import { SocialService } from './social';
 import type { Presence, PresenceStatus, SocialActor, SocialEvent, SocialTransport } from './social';
 import { PgSocialDb } from './social_db';
-import { REALM } from './realm';
 
 const WORLD_SEED = 20061;
 // Interest management: the client renders entities out to 80yd, so new
@@ -283,7 +283,7 @@ export class GameServer {
   private tickMsAvg = 0;
 
   constructor() {
-    this.sim = new Sim({ seed: WORLD_SEED, playerClass: 'warrior', noPlayer: true });
+    this.sim = new Sim({ seed: WORLD_SEED, playerClass: 'warrior', noPlayer: true, rewardMultiplier: REALM_REWARD_MULTIPLIER });
     this.social = new SocialService(this.socialDb, this.socialTransport());
   }
 
@@ -612,6 +612,8 @@ export class GameServer {
       case 'craft_class_weapon': if (msg.tier === 'normal' || msg.tier === 'golden') sim.craftClassWeapon(msg.tier, pid); break;
       case 'buy': if (typeof msg.npc === 'number' && typeof msg.item === 'string') sim.buyItem(msg.npc, msg.item, pid); break;
       case 'sell': if (typeof msg.item === 'string') sim.sellItem(msg.item, pid); break;
+      case 'market_lock': if (typeof msg.item === 'string') sim.marketplaceLockItem(msg.item, pid); break;
+      case 'market_restore': if (typeof msg.item === 'string') sim.marketplaceRestoreItem(msg.item, pid); break;
       case 'release': sim.releaseSpirit(pid); break;
       case 'chat': {
         if (typeof msg.text !== 'string') break;

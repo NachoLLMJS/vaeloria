@@ -227,7 +227,7 @@ export const VISUALS: Record<string, VisualDef> = {
     tint: 0x8d5fd3, tintStrength: 0.28,
   },
   player_druid: {
-    url: `${CHARS}/quaternius_monk.glb`, height: HUMANOID_H,
+    url: `${CHARS}/quaternius_monk_druid_redbeard.glb`, height: HUMANOID_H,
     clips: QUATERNIUS_MONK,
     tint: 0x7da05c, tintStrength: 0.25,
   },

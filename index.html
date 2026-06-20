@@ -455,15 +455,15 @@
     width: var(--pfb-w); height: var(--pfb-h);
     z-index: 1; pointer-events: none; background: 50% 50% / 100% 100% no-repeat url('/images/hud/playerframe-bars.png'); }
 
-  /* ---------- community HUD ---------- */
-  #community-hud { position: absolute; right: 12px; top: 276px; width: 170px; padding: 7px; display: flex; gap: 6px; z-index: 18; }
-  .community-link { flex: 1; min-width: 0; height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 0;
+  /* ---------- marketplace HUD ---------- */
+  #community-hud { position: absolute; left: auto; right: 12px; top: auto; bottom: 66px; transform: none; width: 230px; padding: 7px; display: flex; gap: 6px; z-index: 18; }
+  .community-link { flex: 1; min-width: 0; height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     color: #d8d9ff; text-decoration: none; border: 1px solid #3e4672; border-radius: 6px;
     background: linear-gradient(180deg, #202238ee, #0d0e18ee); box-shadow: inset 0 1px 0 #ffffff16, 0 2px 8px #0008;
-    font-size: 0; font-weight: bold; text-shadow: 1px 1px 1px #000; transition: color .15s, border-color .15s, transform .15s; }
+    font-size: 12px; font-weight: bold; text-shadow: 1px 1px 1px #000; transition: color .15s, border-color .15s, transform .15s; }
   .community-link:hover { color: #fff; border-color: #7f8cff; transform: translateY(-1px); }
-  .community-link.github { color: #e4e4ea; border-color: #4a4a58; }
-  .community-link.github:hover { border-color: var(--gold-dim); }
+  .community-link.marketplace { width: 100%; color: #ffe58a; border-color: #9a7430; background: linear-gradient(180deg, #4b3412ee, #171007ee); cursor: pointer; }
+  .community-link.marketplace:hover { border-color: #ffd76b; color: #fff4bb; }
   .community-link svg { width: 17px; height: 17px; flex: none; display: block; }
   .community-link span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -515,6 +515,32 @@
   .q-uncommon { border-color: #1eff00 !important; }
   .q-rare { border-color: #0070dd !important; }
   .q-epic { border-color: #a335ee !important; box-shadow: 0 0 6px #a335ee66; }
+
+  #marketplace-window { left: 50%; top: 8%; transform: translateX(-50%); width: 760px; max-height: 78%; overflow: hidden; }
+  #profile-window { left: 50%; top: 10%; transform: translateX(-50%); width: 620px; max-height: 74%; overflow: hidden; }
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .profile-card { background: rgba(10,8,5,.62); border: 1px solid #5e4218; border-radius: 6px; padding: 9px; min-height: 84px; }
+  .profile-label { color: #bca982; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .profile-value { color: #ffe5a8; font-family: var(--title-font); font-size: 13px; word-break: break-all; margin-top: 4px; }
+  .profile-note { color: #9fb6ff; font-size: 11px; line-height: 1.35; margin-top: 5px; }
+  .profile-head { display: flex; gap: 10px; align-items: center; }
+  .profile-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 1px solid #9a7430; background: #171007; }
+  .market-wrap { display: grid; grid-template-columns: 1.2fr .8fr; gap: 10px; min-height: 420px; }
+  .market-pane { background: rgba(10,8,5,.62); border: 1px solid #5e4218; border-radius: 6px; padding: 8px; overflow: hidden; }
+  .market-controls { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .market-controls select, .market-controls input { background: #120d08; color: #ffe5a8; border: 1px solid #6b4d19; border-radius: 4px; padding: 5px 7px; font-family: inherit; }
+  .market-list { max-height: 330px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
+  .market-row { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 7px; border: 1px solid #403018; border-radius: 6px; background: linear-gradient(180deg, #21170cee, #100b06ee); }
+  .market-row:hover { border-color: #9a7430; }
+  .market-name { font-family: var(--title-font); font-size: 13px; }
+  .market-meta { color: #bca982; font-size: 11px; margin-top: 2px; }
+  .market-price { text-align: right; color: #ffd15c; font-family: var(--title-font); white-space: nowrap; }
+  .market-pill { display: inline-block; padding: 1px 6px; border: 1px solid #6b4d19; border-radius: 999px; color: #cdbb8f; font-size: 10px; margin-right: 4px; }
+  .market-status { color: #9fb6ff; font-size: 11px; line-height: 1.35; margin-bottom: 8px; }
+  .market-sell-list { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .market-sell-row { padding: 7px; border: 1px solid #403018; border-radius: 6px; background: #0d0a06cc; }
+  .market-sell-form { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+  .market-sell-form input { width: 74px; }
 
   /* character window — WoW-style paper doll: equip slots flank a live 3D model */
   #char-window { left: 16px; top: 90px; width: 384px; }
@@ -1652,6 +1678,8 @@
   .realm-row:hover { background: #ffffff10; }
   .realm-row.sel { background: linear-gradient(#2a2436, #161220); box-shadow: inset 3px 0 0 var(--gold); }
   .realm-row.offline { opacity: 0.55; }
+  .realm-row.locked { opacity: .72; cursor: not-allowed; background: linear-gradient(90deg, rgba(255,209,0,.08), transparent); }
+  .realm-row.locked:hover { background: linear-gradient(90deg, rgba(255,209,0,.12), transparent); }
   .realm-name { font-family: var(--title-font); font-size: 15px; color: #f0ead8; }
   .realm-name .rn-chars { color: #7fd4ff; font-size: 11px; margin-left: 8px; }
   .realm-name .rn-rec { color: #40d264; font-size: 10px; margin-left: 6px; border: 1px solid #2f5a22; border-radius: 3px; padding: 0 4px; }
@@ -2348,7 +2376,7 @@
   }
 
   @media (max-width: 760px) {
-    #community-hud { top: 276px; width: 146px; padding: 6px; gap: 5px; }
+    #community-hud { right: 12px; bottom: 66px; width: 190px; padding: 6px; gap: 5px; }
     .community-link { height: 32px; }
     .community-link svg { width: 17px; height: 17px; }
     #quest-tracker { top: 330px; right: 12px; width: 190px; }
@@ -2746,15 +2774,15 @@
       </div>
     </div>
 
-    <div id="community-hud" class="panel" aria-label="Community links">
-      <a class="community-link discord" href="https://discord.gg/GjhnUsBtw" target="_blank" rel="noopener noreferrer" title="Join the Discord" aria-label="Join the Discord community">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.32 4.37A19.8 19.8 0 0 0 15.36 2.8a13.66 13.66 0 0 0-.64 1.32 18.47 18.47 0 0 0-5.45 0 13.02 13.02 0 0 0-.65-1.32 19.73 19.73 0 0 0-4.96 1.58C.53 9.03-.32 13.56.1 18.02a19.9 19.9 0 0 0 6.08 3.08c.49-.67.93-1.38 1.3-2.13-.72-.27-1.41-.6-2.06-.98.17-.13.34-.26.5-.4a14.16 14.16 0 0 0 12.16 0c.16.14.33.27.5.4-.65.39-1.34.72-2.07.99.38.74.81 1.45 1.31 2.12a19.86 19.86 0 0 0 6.08-3.08c.5-5.17-.85-9.66-3.58-13.65ZM8.02 15.28c-1.18 0-2.15-1.08-2.15-2.41 0-1.33.95-2.42 2.15-2.42 1.2 0 2.17 1.1 2.15 2.42 0 1.33-.95 2.41-2.15 2.41Zm7.96 0c-1.18 0-2.15-1.08-2.15-2.41 0-1.33.95-2.42 2.15-2.42 1.2 0 2.17 1.1 2.15 2.42 0 1.33-.95 2.41-2.15 2.41Z"/></svg>
-        <span>Discord</span>
-      </a>
-      <a class="community-link github" href="https://github.com/levy-street/world-of-claudecraft" target="_blank" rel="noopener noreferrer" title="View GitHub" aria-label="View VAELORIA on GitHub">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
-        <span>GitHub</span>
-      </a>
+    <div id="community-hud" class="panel" aria-label="Marketplace">
+      <button id="profile-btn" class="community-link profile" title="Open Wallet Profile" aria-label="Open Wallet Profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5Zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5Z"/></svg>
+        <span>Profile</span>
+      </button>
+      <button id="marketplace-btn" class="community-link marketplace" title="Open Vaeloria Marketplace" aria-label="Open Vaeloria Marketplace">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2Zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2ZM7.2 14.8h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.1 5H6.21L5.27 3H2v2h2l3.6 7.59-1.35 2.45C5.52 16.37 6.48 18 8 18h11v-2H8l1.1-2Z"/></svg>
+        <span>Marketplace</span>
+      </button>
     </div>
 
     <div id="quest-tracker"></div>
@@ -2803,6 +2831,8 @@
     <div id="spellbook" class="window panel"></div>
     <div id="quest-log-window" class="window panel"></div>
     <div id="vendor-window" class="window panel"></div>
+    <div id="marketplace-window" class="window panel"></div>
+    <div id="profile-window" class="window panel"></div>
     <div id="map-window" class="window panel"><canvas id="map-canvas" width="560" height="560"></canvas></div>
     <div id="options-menu" class="window panel"></div>
     <div id="social-window" class="window panel"></div>

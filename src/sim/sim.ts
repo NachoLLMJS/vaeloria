@@ -264,6 +264,7 @@ export class Sim {
       respawnSeconds: cfg.respawnSeconds ?? 25,
       autoEquip: cfg.autoEquip ?? false,
       playerName: cfg.playerName ?? 'Adventurer',
+      rewardMultiplier: cfg.rewardMultiplier ?? 1,
     };
     this.rng = new Rng(cfg.seed);
     this.harvestableTrees = generateDecorations(cfg.seed)
@@ -2378,7 +2379,7 @@ export class Sim {
         for (const member of eligible) {
           const mE = this.entities.get(member.entityId);
           if (!mE) continue;
-          const xpGain = Math.round((mobXpValue(e.level, mE.level) * eliteMult * bonus) / eligible.length);
+          const xpGain = Math.round((mobXpValue(e.level, mE.level) * eliteMult * bonus * this.cfg.rewardMultiplier) / eligible.length);
           if (xpGain > 0 && mE.level < MAX_LEVEL) this.grantXp(xpGain, member);
           this.onMobKilledForQuests(e, member);
         }
@@ -3177,6 +3178,23 @@ export class Sim {
     this.emit({ type: 'loot', text: `Sold ${def.name} for ${formatMoney(def.sellValue)}.`, pid: meta.entityId });
   }
 
+  marketplaceLockItem(itemId: string, pid?: number): void {
+    const r = this.resolve(pid);
+    if (!r) return;
+    const { meta } = r;
+    if (this.countItem(itemId, meta.entityId) <= 0) return;
+    this.removeItem(itemId, 1, meta.entityId);
+    this.emit({ type: 'loot', text: `${ITEMS[itemId]?.name ?? itemId} posted to marketplace.`, pid: meta.entityId });
+  }
+
+  marketplaceRestoreItem(itemId: string, pid?: number): void {
+    const r = this.resolve(pid);
+    if (!r) return;
+    const { meta } = r;
+    this.addItem(itemId, 1, meta.entityId);
+    this.emit({ type: 'loot', text: `${ITEMS[itemId]?.name ?? itemId} returned from marketplace.`, pid: meta.entityId });
+  }
+
   private addItemSilent(itemId: string, count: number, meta: PlayerMeta): void {
     const existing = meta.inventory.find((s) => s.itemId === itemId);
     if (existing) existing.count += count;
@@ -3217,9 +3235,10 @@ export class Sim {
     }
     if (dist2d(p.pos, mob.pos) > INTERACT_RANGE) { this.error(meta.entityId, 'Too far away.'); return; }
     if (mob.loot.copper > 0) {
-      meta.copper += mob.loot.copper;
-      meta.counters.lootCopper += mob.loot.copper;
-      this.emit({ type: 'loot', text: `You loot ${formatMoney(mob.loot.copper)}.`, pid: meta.entityId });
+      const copper = Math.max(1, Math.round(mob.loot.copper * this.cfg.rewardMultiplier));
+      meta.copper += copper;
+      meta.counters.lootCopper += copper;
+      this.emit({ type: 'loot', text: `You loot ${formatMoney(copper)}.`, pid: meta.entityId });
     }
     for (const s of mob.loot.items) this.addItem(s.itemId, s.count, meta.entityId);
     mob.loot = null;
@@ -3352,12 +3371,13 @@ export class Sim {
     meta.questsDone.add(questId);
     meta.counters.questsCompleted++;
     if (quest.copperReward > 0) {
-      meta.copper += quest.copperReward;
-      this.emit({ type: 'loot', text: `You receive ${formatMoney(quest.copperReward)}.`, pid: meta.entityId });
+      const copperReward = Math.max(1, Math.round(quest.copperReward * this.cfg.rewardMultiplier));
+      meta.copper += copperReward;
+      this.emit({ type: 'loot', text: `You receive ${formatMoney(copperReward)}.`, pid: meta.entityId });
     }
     const rewardItem = quest.itemRewards[meta.cls] ?? quest.itemRewards[REWARD_ARCHETYPE[meta.cls]];
     if (rewardItem) this.addItem(rewardItem, 1, meta.entityId);
-    this.grantXp(quest.xpReward, meta);
+    this.grantXp(Math.round(quest.xpReward * this.cfg.rewardMultiplier), meta);
     this.emit({ type: 'questDone', questId, pid: meta.entityId });
     this.emit({ type: 'log', text: `Quest completed: ${quest.name}`, color: '#ff0', pid: meta.entityId });
   }

@@ -113,7 +113,14 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
   let hud!: Hud;
   try {
     renderer = new Renderer(world, canvas, nameplates);
-    hud = new Hud(world, renderer, keybinds);
+    hud = new Hud(world, renderer, keybinds, () => ({
+      username: api.username,
+      solanaWallet: api.solanaWallet,
+      realm: api.realm,
+      privyDisplayName: api.privyDisplayName,
+      privyAvatarUrl: api.privyAvatarUrl,
+      privyTwitterUsername: api.privyTwitterUsername,
+    }));
   } catch (err) {
     // e.g. WebGL context creation failure: surface it instead of leaving the
     // loading screen up forever
@@ -626,14 +633,18 @@ function showRealmList(dir?: import('./net/online').RealmDirectory): void {
     listEl.innerHTML = d.realms.map((r) => {
       const chars = d.characters[r.name] ?? 0;
       const charTag = chars > 0 ? `<span class="rn-chars">${chars} character${chars === 1 ? '' : 's'}</span>` : '';
-      return `<div class="realm-row" data-name="${r.name}" data-url="${r.url}">
-        <div><div class="realm-name">${r.name}${charTag}<span class="rn-rec" data-rec hidden>Recommended</span></div>
-          <div class="realm-sub" data-sub>Checking status…</div></div>
+      const minHold = r.minVaeloria ?? d.premiumMinVaeloria ?? 1000;
+      const locked = Boolean(r.premium) && d.vaeloriaHoldings < minHold;
+      const premiumTag = r.premium ? `<span class="rn-chars">Premium · ${minHold.toLocaleString()}+ VAELORIA</span>` : '';
+      return `<div class="realm-row${locked ? ' locked' : ''}" data-name="${r.name}" data-url="${r.url}" data-locked="${locked ? '1' : '0'}">
+        <div><div class="realm-name">${r.name}${charTag}${premiumTag}<span class="rn-rec" data-rec hidden>Recommended</span></div>
+          <div class="realm-sub" data-sub>${locked ? `Locked — your wallet has ${d.vaeloriaHoldings.toLocaleString()} VAELORIA` : 'Checking status…'}</div></div>
         <div class="realm-type">${r.type}</div>
-        <div class="realm-pop offline" data-pop>—</div>
+        <div class="realm-pop offline" data-pop>${locked ? 'Locked' : '—'}</div>
       </div>`;
     }).join('');
     listEl.querySelectorAll('.realm-row').forEach((row) => row.addEventListener('click', () => {
+      if ((row as HTMLElement).dataset.locked === '1') { loginError('Premium realm requires 1,000+ VAELORIA in your Privy wallet.'); return; }
       const name = (row as HTMLElement).dataset.name!;
       const entry = d.realms.find((r) => r.name === name);
       if (entry) selectRealm(entry);
@@ -643,7 +654,7 @@ function showRealmList(dir?: import('./net/online').RealmDirectory): void {
     void Promise.all(d.realms.map(async (r) => {
       const st = await api.realmStatus(r.url || '');
       const row = listEl.querySelector(`.realm-row[data-name="${CSS.escape(r.name)}"]`) as HTMLElement | null;
-      if (!row) return;
+      if (!row || row.dataset.locked === '1') return;
       const pop = realmPopulation(st.online, st.players);
       const popEl = row.querySelector('[data-pop]') as HTMLElement;
       popEl.textContent = pop.label;
