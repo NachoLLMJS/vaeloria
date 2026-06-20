@@ -1,11 +1,11 @@
 # VAELORIA game server — serves the built client, REST API and WebSocket
 # world on one port. Pair with a postgres service (see docker-compose.yml).
 
-FROM node:22-alpine AS build
+FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
-COPY tsconfig.json vite.config.ts index.html admin.html ./
+COPY tsconfig.json vite.config.ts index.html admin.html gear-preview.html assets-gallery.html portraits.html ./
 COPY src ./src
 COPY server ./server
 COPY headless ./headless
@@ -13,7 +13,7 @@ COPY scripts ./scripts
 COPY public ./public
 RUN npm run build && cp -a dist/media ./media-build && rm -rf dist/media && npm run build:server
 
-FROM node:22-alpine
+FROM node:22-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/dist ./dist
