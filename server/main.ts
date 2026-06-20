@@ -16,7 +16,7 @@ import { json, readBody } from './http_util';
 import { rateLimited } from './ratelimit';
 import { handleAdminApi } from './admin';
 import { GameServer } from './game';
-import { REALM, REALM_DIRECTORY, REALM_ORIGINS, IS_PREMIUM_REALM, PREMIUM_REALM_MIN_VAELORIA } from './realm';
+import { REALM, REALM_DIRECTORY, REALM_ORIGINS, PREMIUM_REALM_MIN_VAELORIA, realmEntryFor, realmIsPremium, realmRewardMultiplier } from './realm';
 import { cacheControlFor, etagFor, isNotModified } from './static_cache';
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -25,6 +25,21 @@ const STATIC_DIR = path.join(__dirname, '..', 'dist');
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
 const VAELORIA_TOKEN_MINT = (process.env.VAELORIA_TOKEN_MINT ?? '').trim();
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+const games = new Map(REALM_DIRECTORY.map((r) => [r.name, new GameServer(r.name, realmRewardMultiplier(r.name))]));
+function gameForRealm(realm: string): GameServer {
+  const entry = realmEntryFor(realm);
+  let game = games.get(entry.name);
+  if (!game) {
+    game = new GameServer(entry.name, realmRewardMultiplier(entry.name));
+    games.set(entry.name, game);
+  }
+  return game;
+}
+function selectedRealm(req: http.IncomingMessage, fallback = REALM): string {
+  const fromHeader = typeof req.headers['x-vaeloria-realm'] === 'string' ? req.headers['x-vaeloria-realm'] : '';
+  const fromQuery = new URL(req.url ?? '/', 'http://localhost').searchParams.get('realm') ?? '';
+  return realmEntryFor(fromHeader || fromQuery || fallback).name;
+}
 
 async function vaeloriaHoldingsForWallet(wallet: string | null | undefined): Promise<number> {
   if (!wallet || !VAELORIA_TOKEN_MINT || VAELORIA_TOKEN_MINT.includes('111111111111')) return 0;
@@ -51,12 +66,12 @@ async function vaeloriaHoldingsForAccount(accountId: number | null): Promise<num
   return vaeloriaHoldingsForWallet(account?.solana_wallet);
 }
 
-async function premiumAllowed(accountId: number | null): Promise<boolean> {
-  if (!IS_PREMIUM_REALM) return true;
+async function premiumAllowed(accountId: number | null, realm: string): Promise<boolean> {
+  const entry = realmEntryFor(realm);
+  if (!realmIsPremium(entry.name, entry.type)) return true;
   return (await vaeloriaHoldingsForAccount(accountId)) >= PREMIUM_REALM_MIN_VAELORIA;
 }
 
-const game = new GameServer();
 
 async function bearerAccount(req: http.IncomingMessage): Promise<number | null> {
   const auth = req.headers.authorization ?? '';
@@ -171,13 +186,15 @@ function maybeCors(req: http.IncomingMessage, res: http.ServerResponse): void {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Vaeloria-Realm');
     res.setHeader('Access-Control-Max-Age', '600');
   }
 }
 
 async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const url = (req.url ?? '').split('?')[0];
+  const realm = selectedRealm(req);
+  const game = gameForRealm(realm);
   try {
     if (req.method === 'POST' && (url === '/api/register' || url === '/api/login' || url === '/api/privy-login') && rateLimited(req)) {
       return json(res, 429, { error: 'too many attempts — wait a minute and try again' });
@@ -214,11 +231,11 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
     if (url === '/api/characters') {
     const accountId = await bearerActiveAccount(req, res);
     if (accountId === null) return;
-    if (!(await premiumAllowed(accountId))) return json(res, 403, { error: `VAELORIA Premium requires ${PREMIUM_REALM_MIN_VAELORIA.toLocaleString()}+ VAELORIA in your Privy wallet.` });
+    if (!(await premiumAllowed(accountId, realm))) return json(res, 403, { error: `VAELORIA Premium requires ${PREMIUM_REALM_MIN_VAELORIA.toLocaleString()}+ VAELORIA in your Privy wallet.` });
 if (req.method === 'GET') {
-        const chars = await listCharacters(accountId);
+        const chars = await listCharacters(accountId, realm)
         return json(res, 200, {
-          realm: REALM,
+          realm,
           characters: chars.map((c) => ({
             id: c.id, name: c.name, class: c.class, level: c.level,
             online: [...game.clients.values()].some((s) => s.characterId === c.id),
@@ -231,10 +248,10 @@ if (req.method === 'GET') {
         if (!validCharName(body.name)) return json(res, 400, { error: 'invalid character name (2-16 letters)' });
         const validClasses = ['warrior', 'paladin', 'hunter', 'rogue', 'priest', 'shaman', 'mage', 'warlock', 'druid'];
         if (!validClasses.includes(body.class)) return json(res, 400, { error: 'invalid class' });
-        const chars = await listCharacters(accountId);
+        const chars = await listCharacters(accountId, realm)
         if (chars.length >= 10) return json(res, 400, { error: 'character limit reached' });
         try {
-          const c = await createCharacter(accountId, body.name, body.class);
+          const c = await createCharacter(accountId, body.name, body.class, realm);
           return json(res, 200, { id: c.id, name: c.name, class: c.class, level: c.level, forceRename: c.force_rename });
         } catch (err: any) {
           if (String(err?.message).includes('unique') || err?.code === '23505') {
@@ -252,7 +269,7 @@ if (req.method === 'GET') {
       const body = await readBody(req);
       if (!validCharName(body.name)) return json(res, 400, { error: 'invalid character name (2-16 letters)' });
       try {
-        const c = await renameCharacter(accountId, Number(renameMatch[1]), body.name);
+        const c = await renameCharacter(accountId, Number(renameMatch[1]), body.name, realm);
         if (!c) return json(res, 404, { error: 'character not found' });
         return json(res, 200, { id: c.id, name: c.name, class: c.class, level: c.level, forceRename: c.force_rename });
       } catch (err: any) {
@@ -278,13 +295,13 @@ if (req.method === 'GET') {
       const accountId = await bearerAccount(req);
       const characters = accountId !== null ? await characterCountsByRealm(accountId) : {};
       const vaeloriaHoldings = await vaeloriaHoldingsForAccount(accountId);
-      return json(res, 200, { current: REALM, realms: REALM_DIRECTORY, characters, vaeloriaHoldings, premiumMinVaeloria: PREMIUM_REALM_MIN_VAELORIA });
+      return json(res, 200, { current: realm, realms: REALM_DIRECTORY, characters, vaeloriaHoldings, premiumMinVaeloria: PREMIUM_REALM_MIN_VAELORIA });
     }
     if (req.method === 'GET' && url === '/api/search') {
       const accountId = await bearerAccount(req);
       if (accountId === null) return json(res, 401, { error: 'not authenticated' });
       const q = new URL(req.url ?? '/', 'http://localhost').searchParams.get('q') ?? '';
-      const results = q.trim().length >= 1 ? await searchCharacters(q, 8) : [];
+      const results = q.trim().length >= 1 ? await searchCharacters(q, 8, realm) : [];
       return json(res, 200, { results });
     }
     if (req.method === 'POST' && url === '/api/reports') {
@@ -297,11 +314,11 @@ if (req.method === 'GET') {
       if (!Number.isFinite(reporterCharacterId)) {
         return json(res, 400, { error: 'invalid report target' });
       }
-      const reporter = await getCharacter(accountId, reporterCharacterId);
+      const reporter = await getCharacter(accountId, reporterCharacterId, realm);
       if (!reporter) return json(res, 404, { error: 'reporting character not found' });
       const resolved = await resolveReportTarget(body, {
         reportTargetForPid: (pid) => game.reportTargetForPid(pid),
-        findCharacterReportTargetByName,
+        findCharacterReportTargetByName: (name) => findCharacterReportTargetByName(name, realm),
       });
       if (!resolved.ok) return json(res, resolved.status, { error: resolved.error });
       try {
@@ -321,7 +338,7 @@ if (req.method === 'GET') {
     if (req.method === 'GET' && url === '/api/status') {
       return json(res, 200, {
         ok: true,
-        realm: REALM,
+        realm,
         players_online: game.clients.size,
         names: [...game.clients.values()].map((s) => s.name),
       });
@@ -407,7 +424,9 @@ async function main(): Promise<void> {
       ws.close();
       return;
     }
-    if (!(await premiumAllowed(accountId))) {
+    const realm = realmEntryFor(typeof msg.realm === 'string' ? msg.realm : undefined).name;
+    const game = gameForRealm(realm);
+    if (!(await premiumAllowed(accountId, realm))) {
       ws.send(JSON.stringify({ t: 'error', error: `VAELORIA Premium requires ${PREMIUM_REALM_MIN_VAELORIA.toLocaleString()}+ VAELORIA in your Privy wallet.` }));
       ws.close();
       return;
@@ -418,7 +437,7 @@ async function main(): Promise<void> {
       ws.close();
       return;
     }
-    const character = await getCharacter(accountId, characterId);
+    const character = await getCharacter(accountId, characterId, realm);
     if (!character) {
       ws.send(JSON.stringify({ t: 'error', error: 'no such character' }));
       ws.close();
@@ -436,13 +455,13 @@ async function main(): Promise<void> {
       return;
     }
     const session = result;
-    console.log(`+ ${character.name} (${character.class}) joined — ${game.clients.size} online`);
+    console.log(`[${realm}] + ${character.name} (${character.class}) joined — ${game.clients.size} online`);
     ws.on('message', (data) => {
       game.handleMessage(session, String(data));
     });
     ws.on('close', () => {
       void game.leave(session, 'disconnected');
-      console.log(`- ${character.name} left — ${game.clients.size} online`);
+      console.log(`[${realm}] - ${character.name} left — ${game.clients.size} online`);
     });
     ws.on('error', () => {
       void game.leave(session, 'connection error');
@@ -470,7 +489,7 @@ async function main(): Promise<void> {
     });
   }
 
-  game.start();
+  for (const game of games.values()) game.start();
   server.listen(PORT, () => {
     console.log(`VAELORIA server listening on http://localhost:${PORT}`);
     console.log(`  REST: /api/privy-login /api/characters /api/status`);
@@ -479,10 +498,10 @@ async function main(): Promise<void> {
 
   const shutdown = async () => {
     console.log('shutting down: saving characters...');
-    game.stop();
-    await game.saveAll('shutdown');
-    await game.endAllPlaySessions();
-    await game.chatLog.stop();
+    for (const game of games.values()) game.stop();
+    for (const game of games.values()) await game.saveAll('shutdown');
+    for (const game of games.values()) await game.endAllPlaySessions();
+    for (const game of games.values()) await game.chatLog.stop();
     await pool.end();
     process.exit(0);
   };

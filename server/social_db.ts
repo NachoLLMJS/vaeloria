@@ -58,20 +58,20 @@ CREATE INDEX IF NOT EXISTS guild_members_guild ON guild_members(guild_id);
 const CHAR_COLS = 'id, name, class AS cls, level, realm';
 
 export class PgSocialDb implements SocialDb {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: Pool, private readonly realm = REALM) {}
 
   async findCharacterByName(name: string): Promise<CharInfo | null> {
     // scoped to this realm: you can only friend/ignore/invite characters that
     // live on the same world as you. exact case wins; otherwise an unambiguous
     // case-insensitive match
-    const exact = await this.pool.query(`SELECT ${CHAR_COLS} FROM characters WHERE name = $1 AND realm = $2`, [name, REALM]);
+    const exact = await this.pool.query(`SELECT ${CHAR_COLS} FROM characters WHERE name = $1 AND realm = $2`, [name, this.realm]);
     if (exact.rows[0]) return exact.rows[0];
-    const ci = await this.pool.query(`SELECT ${CHAR_COLS} FROM characters WHERE lower(name) = lower($1) AND realm = $2 LIMIT 2`, [name, REALM]);
+    const ci = await this.pool.query(`SELECT ${CHAR_COLS} FROM characters WHERE lower(name) = lower($1) AND realm = $2 LIMIT 2`, [name, this.realm]);
     return ci.rows.length === 1 ? ci.rows[0] : null;
   }
 
   async getCharacter(id: number): Promise<CharInfo | null> {
-    const res = await this.pool.query(`SELECT ${CHAR_COLS} FROM characters WHERE id = $1 AND realm = $2`, [id, REALM]);
+    const res = await this.pool.query(`SELECT ${CHAR_COLS} FROM characters WHERE id = $1 AND realm = $2`, [id, this.realm]);
     return res.rows[0] ?? null;
   }
 
@@ -129,7 +129,7 @@ export class PgSocialDb implements SocialDb {
   async createGuild(name: string): Promise<number> {
     const res = await this.pool.query(
       'INSERT INTO guilds (name, realm) VALUES ($1, $2) RETURNING id',
-      [name, DEFAULT_REALM],
+      [name, this.realm],
     );
     return res.rows[0].id;
   }

@@ -651,7 +651,7 @@ function showRealmList(dir?: import('./net/online').RealmDirectory): void {
     // live status per realm
     let bestPlayers = Infinity, bestName = '';
     void Promise.all(d.realms.map(async (r) => {
-      const st = await api.realmStatus(r.url || '');
+      const st = await api.realmStatus(r.url || '', r.name);
       const row = listEl.querySelector(`.realm-row[data-name="${CSS.escape(r.name)}"]`) as HTMLElement | null;
       if (!row || row.dataset.locked === '1') return;
       const pop = realmPopulation(st.online, st.players);
@@ -671,7 +671,7 @@ function showRealmList(dir?: import('./net/online').RealmDirectory): void {
 }
 
 function selectRealm(entry: import('./net/online').RealmEntry): void {
-  api.setRealm(entry.url);
+  api.setRealm(entry.url, entry.name);
   api.realm = entry.name;
   localStorage.setItem(LAST_REALM_KEY, entry.name);
   withLoadingScreen('Entering the realm…', () => {
@@ -804,7 +804,7 @@ function enterWorld(c: CharacterSummary): void {
   if (!beginWorldEntry()) return;
   audio.init();
   showLoadingScreen('Connecting to realm…');
-  const world = new ClientWorld(api.token!, c.id, c.class, api.base);
+  const world = new ClientWorld(api.token!, c.id, c.class, api.base, api.realm);
   // wait for hello + first snapshot so the world starts populated
   const waitStart = Date.now();
   const poll = setInterval(() => {

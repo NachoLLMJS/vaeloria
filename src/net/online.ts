@@ -26,8 +26,8 @@ export function buildWebSocketUrl(protocol: string, host: string): string {
   return `${proto}://${host}/ws`;
 }
 
-export function buildWebSocketAuthMessage(token: string, characterId: number): { t: 'auth'; token: string; character: number } {
-  return { t: 'auth', token, character: characterId };
+export function buildWebSocketAuthMessage(token: string, characterId: number, realm?: string | null): { t: 'auth'; token: string; character: number; realm?: string } {
+  return realm ? { t: 'auth', token, character: characterId, realm } : { t: 'auth', token, character: characterId };
 }
 
 export type RealmType = 'Normal' | 'PvP' | 'RP' | 'RP-PvP';
@@ -60,8 +60,9 @@ export class Api {
   // origin; set to another realm's origin when the player picks a realm
   base = '';
 
-  setRealm(url: string): void {
+  setRealm(url: string, name?: string): void {
     this.base = url || '';
+    if (name) this.realm = name;
   }
 
   // The realm directory is always read from the page's own server. Sending the
@@ -78,9 +79,10 @@ export class Api {
   }
 
   // Live status for a realm (population + reachability), for the realm picker.
-  async realmStatus(url: string): Promise<{ online: boolean; players: number }> {
+  async realmStatus(url: string, realm?: string): Promise<{ online: boolean; players: number }> {
     try {
-      const res = await fetch(`${url}/api/status`, { signal: AbortSignal.timeout(3000) });
+      const target = `${url}/api/status${realm ? `?realm=${encodeURIComponent(realm)}` : ''}`;
+      const res = await fetch(target, { signal: AbortSignal.timeout(3000) });
       if (!res.ok) return { online: false, players: 0 };
       const d = await res.json();
       return { online: true, players: d.players_online ?? 0 };
@@ -95,6 +97,7 @@ export class Api {
       headers: {
         'Content-Type': 'application/json',
         ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+        ...(this.realm ? { 'X-Vaeloria-Realm': this.realm } : {}),
       },
       body: JSON.stringify(body),
     });
@@ -105,7 +108,10 @@ export class Api {
 
   private async get(path: string): Promise<any> {
     const res = await fetch(this.base + path, {
-      headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
+      headers: {
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+        ...(this.realm ? { 'X-Vaeloria-Realm': this.realm } : {}),
+      },
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error ?? `request failed (${res.status})`);
@@ -230,6 +236,7 @@ export class ClientWorld implements IWorld {
   private ws: WebSocket;
   private readonly token: string;
   private readonly base: string;
+  private readonly selectedRealm: string | null;
   private eventQueue: SimEvent[] = [];
   private lastTreeTimerSync = 0;
   // inventory deltas arrive in snapshots, separate from the event frames the
@@ -238,10 +245,11 @@ export class ClientWorld implements IWorld {
   private mouselookFacing: number | null = null;
   private sendTimer: number | undefined;
 
-  constructor(token: string, characterId: number, cls: PlayerClass, base = '') {
+  constructor(token: string, characterId: number, cls: PlayerClass, base = '', realm: string | null = null) {
     this.characterId = characterId;
     this.token = token;
     this.base = base;
+    this.selectedRealm = realm;
     this.cfg = { seed: 20061, playerClass: cls };
     // when a realm was picked, connect to that realm's origin; otherwise the
     // page's own host
@@ -250,7 +258,7 @@ export class ClientWorld implements IWorld {
       : buildWebSocketUrl(location.protocol, location.host);
     this.ws = new WebSocket(wsUrl);
     this.ws.onopen = () => {
-      this.ws.send(JSON.stringify(buildWebSocketAuthMessage(token, characterId)));
+      this.ws.send(JSON.stringify(buildWebSocketAuthMessage(token, characterId, this.selectedRealm)));
     };
     this.ws.onmessage = (ev) => this.onMessage(String(ev.data));
     this.ws.onclose = () => {

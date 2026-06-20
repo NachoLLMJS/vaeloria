@@ -1,11 +1,12 @@
-// The realm (world/shard) this server process serves. In the process-per-realm
-// model each instance hosts exactly one realm — set REALM_NAME per deployment
-// (e.g. a Caddy vhost or compose service per realm), all pointing at the same
-// database. Characters, friends, guilds, and presence are all scoped to this
-// value, so two processes with different REALM_NAME share a DB yet form fully
-// isolated worlds. Defaults to a single realm for local dev / single-shard prod.
+// Realm/shard configuration.
+//
+// Historically VAELORIA used one Node process per realm. Railway's first public
+// test uses a cheaper/simpler single service, so this module also supports an
+// internal multi-realm directory: several isolated GameServer instances inside
+// one process, selected by the client via X-Vaeloria-Realm / websocket auth.
 
 export const DEFAULT_REALM_NAME = 'VAELORIA1';
+export const PREMIUM_REALM_NAME = 'VAELORIA Premium';
 export const PREMIUM_REALM_MIN_VAELORIA = Number(process.env.PREMIUM_REALM_MIN_VAELORIA ?? 1000);
 
 export function resolveRealm(rawName: string | undefined): string {
@@ -37,8 +38,13 @@ export interface RealmEntry {
   minVaeloria?: number;
 }
 
-function realmIsPremium(name: string, type: RealmType): boolean {
+export function realmIsPremium(name: string, type?: RealmType): boolean {
   return type === 'Premium' || /^VAELORIA\s*PREMIUM$/i.test(name);
+}
+
+function entry(name: string, url: string, type: RealmType): RealmEntry {
+  const premium = realmIsPremium(name, type);
+  return { name, url, type, premium, minVaeloria: premium ? PREMIUM_REALM_MIN_VAELORIA : undefined };
 }
 
 // Configure REALMS as comma-separated `Name=https://host=Type` entries.
@@ -54,17 +60,39 @@ function parseRealms(raw: string | undefined): RealmEntry[] {
     if (url && !/^https?:\/\/[^/]+$/.test(url.replace(/\/+$/, ''))) continue;
     url = url.replace(/\/+$/, '');
     if (out.some((e) => e.name === name)) continue;
-    const type = resolveRealmType(fields[2]);
-    const premium = realmIsPremium(name, type);
-    out.push({ name, url, type, premium, minVaeloria: premium ? PREMIUM_REALM_MIN_VAELORIA : undefined });
+    out.push(entry(name, url, resolveRealmType(fields[2])));
   }
   return out;
 }
 
+// In single-service mode both realms live behind the same public origin. The
+// empty URL means "use this page's origin"; the client sends the chosen realm in
+// headers/websocket auth so the same host can route internally.
+const DEFAULT_INTERNAL_REALMS: RealmEntry[] = [
+  entry(PREMIUM_REALM_NAME, '', 'Premium'),
+  entry(DEFAULT_REALM_NAME, '', 'Normal'),
+];
+
 export const REALM_DIRECTORY: RealmEntry[] = (() => {
   const parsed = parseRealms(process.env.REALMS);
-  const realms = parsed.length > 0 ? parsed : [{ name: REALM, url: '', type: REALM_TYPE, premium: IS_PREMIUM_REALM, minVaeloria: IS_PREMIUM_REALM ? PREMIUM_REALM_MIN_VAELORIA : undefined }];
+  const realms = parsed.length > 0
+    ? parsed
+    : (process.env.SINGLE_REALM === '1'
+      ? [entry(REALM, '', REALM_TYPE)]
+      : DEFAULT_INTERNAL_REALMS);
   return [...realms].sort((a, b) => Number(Boolean(b.premium)) - Number(Boolean(a.premium)));
 })();
+
+const REALM_BY_NAME = new Map(REALM_DIRECTORY.map((r) => [r.name, r]));
+
+export function realmEntryFor(name: string | undefined): RealmEntry {
+  const resolved = resolveRealm(name);
+  return REALM_BY_NAME.get(resolved) ?? REALM_BY_NAME.get(REALM) ?? REALM_DIRECTORY[0] ?? entry(DEFAULT_REALM_NAME, '', 'Normal');
+}
+
+export function realmRewardMultiplier(name: string): number {
+  const r = realmEntryFor(name);
+  return realmIsPremium(r.name, r.type) ? 1.5 : 1;
+}
 
 export const REALM_ORIGINS: ReadonlySet<string> = new Set(REALM_DIRECTORY.map((r) => r.url).filter(Boolean));

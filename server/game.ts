@@ -6,7 +6,7 @@ import { DT, Entity, SimEvent, dist2d } from '../src/sim/types';
 import { stealthDetectionRadius, threatEntries } from '../src/sim/threat';
 import { zoneAt, DUNGEONS } from '../src/sim/data';
 import { saveCharacterState, openPlaySession, closePlaySession, insertChatLogs, pool } from './db';
-import { REALM, REALM_REWARD_MULTIPLIER } from './realm';
+
 import { ChatLogger } from './chat_log';
 import { SocialService } from './social';
 import type { Presence, PresenceStatus, SocialActor, SocialEvent, SocialTransport } from './social';
@@ -272,7 +272,7 @@ export class GameServer {
   sim: Sim;
   clients = new Map<number, ClientSession>(); // by pid
   readonly chatLog = new ChatLogger(insertChatLogs);
-  private readonly socialDb = new PgSocialDb(pool);
+  private readonly socialDb: PgSocialDb;
   readonly social: SocialService;
   private wireCache = new Map<number, EntityWireCache>();
   private lastWireSweepTick = 0;
@@ -282,8 +282,9 @@ export class GameServer {
   private peakOnline = 0;
   private tickMsAvg = 0;
 
-  constructor() {
-    this.sim = new Sim({ seed: WORLD_SEED, playerClass: 'warrior', noPlayer: true, rewardMultiplier: REALM_REWARD_MULTIPLIER });
+  constructor(readonly realm: string, rewardMultiplier = 1) {
+    this.sim = new Sim({ seed: WORLD_SEED, playerClass: 'warrior', noPlayer: true, rewardMultiplier });
+    this.socialDb = new PgSocialDb(pool, realm);
     this.social = new SocialService(this.socialDb, this.socialTransport());
   }
 
@@ -421,7 +422,7 @@ export class GameServer {
       seed: this.sim.cfg.seed,
       name,
       cls,
-      realm: REALM,
+      realm: this.realm,
     });
     this.broadcastSystem(`${name} has entered VAELORIA.`);
     void this.initSocial(session);

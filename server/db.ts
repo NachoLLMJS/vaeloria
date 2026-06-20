@@ -246,23 +246,23 @@ export interface CharacterRow {
 // Character reads/writes are scoped to this process's realm: an account may
 // hold characters on several realms (each served by its own process), but a
 // process only ever lists, loads, or creates characters on its own realm.
-export async function listCharacters(accountId: number): Promise<CharacterRow[]> {
+export async function listCharacters(accountId: number, realm = REALM): Promise<CharacterRow[]> {
   const res = await pool.query(
     'SELECT id, account_id, name, class, level, state, is_gm, force_rename FROM characters WHERE account_id = $1 AND realm = $2 ORDER BY id',
-    [accountId, REALM],
+    [accountId, realm],
   );
   return res.rows;
 }
 
-export async function getCharacter(accountId: number, characterId: number): Promise<CharacterRow | null> {
+export async function getCharacter(accountId: number, characterId: number, realm = REALM): Promise<CharacterRow | null> {
   const res = await pool.query(
     'SELECT id, account_id, name, class, level, state, is_gm, force_rename FROM characters WHERE id = $1 AND account_id = $2 AND realm = $3',
-    [characterId, accountId, REALM],
+    [characterId, accountId, realm],
   );
   return res.rows[0] ?? null;
 }
 
-export async function findCharacterReportTargetByName(name: string): Promise<{ accountId: number; characterId: number; characterName: string } | null> {
+export async function findCharacterReportTargetByName(name: string, realm = REALM): Promise<{ accountId: number; characterId: number; characterName: string } | null> {
   const term = name.trim();
   if (!term) return null;
   const res = await pool.query(
@@ -270,16 +270,16 @@ export async function findCharacterReportTargetByName(name: string): Promise<{ a
      FROM characters
      WHERE realm = $1 AND lower(name) = lower($2)
      LIMIT 1`,
-    [REALM, term],
+    [realm, term],
   );
   const row = res.rows[0];
   return row ? { accountId: Number(row.account_id), characterId: Number(row.id), characterName: row.name } : null;
 }
 
-export async function createCharacter(accountId: number, name: string, cls: PlayerClass): Promise<CharacterRow> {
+export async function createCharacter(accountId: number, name: string, cls: PlayerClass, realm = REALM): Promise<CharacterRow> {
   const res = await pool.query(
     'INSERT INTO characters (account_id, name, class, realm) VALUES ($1, $2, $3, $4) RETURNING id, account_id, name, class, level, state, is_gm, force_rename',
-    [accountId, name, cls, REALM],
+    [accountId, name, cls, realm],
   );
   return res.rows[0];
 }
@@ -310,25 +310,25 @@ export interface CharacterSearchRow {
 
 // Realm-scoped username typeahead: case-insensitive prefix match, capped.
 // Wildcards in the input are escaped so they can't widen the match.
-export async function searchCharacters(prefix: string, limit = 8): Promise<CharacterSearchRow[]> {
+export async function searchCharacters(prefix: string, limit = 8, realm = REALM): Promise<CharacterSearchRow[]> {
   const term = prefix.trim();
   if (!term) return [];
   const escaped = term.replace(/[\\%_]/g, (m) => `\\${m}`);
   const res = await pool.query(
     `SELECT name, class AS cls, level FROM characters
      WHERE realm = $1 AND name ILIKE $2 ESCAPE '\\' ORDER BY name LIMIT $3`,
-    [REALM, `${escaped}%`, Math.min(20, Math.max(1, limit))],
+    [realm, `${escaped}%`, Math.min(20, Math.max(1, limit))],
   );
   return res.rows;
 }
 
-export async function renameCharacter(accountId: number, characterId: number, name: string): Promise<CharacterRow | null> {
+export async function renameCharacter(accountId: number, characterId: number, name: string, realm = REALM): Promise<CharacterRow | null> {
   const res = await pool.query(
     `UPDATE characters
      SET name = $3, force_rename = FALSE, updated_at = now()
      WHERE id = $1 AND account_id = $2 AND realm = $4
      RETURNING id, account_id, name, class, level, state, is_gm, force_rename`,
-    [characterId, accountId, name, REALM],
+    [characterId, accountId, name, realm],
   );
   return res.rows[0] ?? null;
 }
