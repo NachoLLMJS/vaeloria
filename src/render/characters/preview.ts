@@ -82,7 +82,7 @@ export class CharacterPreview {
 
     // 5. Lights — hemi ambient + a visible sun (upper-front) that rim-lights
     // the hero and feeds the god-rays, plus a camera-side fill for the front.
-    const hemi = new THREE.HemisphereLight(0xcfe8ff, 0x46603a, 0.45);
+    const hemi = new THREE.HemisphereLight(0xcfe8ff, 0x46603a, 0.30);
     this.scene.add(hemi);
     const sun = new THREE.DirectionalLight(0xffdda2, 2.7); // warm golden back-sun
     sun.position.copy(this.psun).multiplyScalar(60);
@@ -99,7 +99,7 @@ export class CharacterPreview {
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.05;
     this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xeae0d2, 1.05);
+    const fill = new THREE.DirectionalLight(0xeae0d2, 0.82);
     fill.position.set(0.6, 3, 9);
     this.scene.add(fill);
     this.buildSunAndGodRays();
@@ -115,15 +115,15 @@ export class CharacterPreview {
     // biome change, so setCameraZ won't reset this back to the default tune.
     {
       const skyMat = this.skyView.dome.material as THREE.ShaderMaterial;
-      if (skyMat.uniforms?.uTuneA) skyMat.uniforms.uTuneA.value.x = 0.92;
-      if (skyMat.uniforms?.uTuneB) skyMat.uniforms.uTuneB.value.x = 0.92;
+      if (skyMat.uniforms?.uTuneA) skyMat.uniforms.uTuneA.value.x = 1.1;
+      if (skyMat.uniforms?.uTuneB) skyMat.uniforms.uTuneB.value.x = 1.1;
     }
     const envEq = this.skyView.envTexture('vale');
     if (envEq) {
       const pmrem = new THREE.PMREMGenerator(this.renderer);
       const rt = pmrem.fromEquirectangular(envEq);
       this.scene.environment = rt.texture;
-      this.scene.environmentIntensity = 0.42;
+      this.scene.environmentIntensity = 0.33;
       this.scene.environmentRotation.y = this.skyView.envRotationY('vale');
       pmrem.dispose();
     }
@@ -132,14 +132,15 @@ export class CharacterPreview {
     // 7. Ground — a big grass plane with anisotropy + mipmaps + a normal map so
     // it stops striping/streaking the way the naive tiled circle did.
     Promise.all([
-      loadTexture('/textures/terrain/Grass001_Color.jpg', { srgb: true, repeat: true }),
-      loadTexture('/textures/terrain/Grass001_NormalGL.jpg', { srgb: false, repeat: true }),
-    ]).then(([col, norm]) => {
+      loadTexture('/textures/terrain/stylized/Stone_05_Color.jpg', { srgb: true, repeat: true }),
+      loadTexture('/textures/terrain/stylized/Stone_05_NormalGL.jpg', { srgb: false, repeat: true }),
+      loadTexture('/textures/terrain/stylized/Stone_05_Roughness.jpg', { srgb: false, repeat: true }),
+    ]).then(([col, norm, rough]) => {
       const aniso = this.renderer.capabilities.getMaxAnisotropy();
-      for (const t of [col, norm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(80, 80); t.anisotropy = aniso; }
+      for (const t of [col, norm, rough]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(80, 80); t.anisotropy = aniso; }
       const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(560, 560),
-        new THREE.MeshStandardMaterial({ map: col, normalMap: norm, normalScale: new THREE.Vector2(0.7, 0.7), color: 0x6f8a4a, roughness: 0.97, metalness: 0 })
+        new THREE.MeshStandardMaterial({ map: col, normalMap: norm, roughnessMap: rough, normalScale: new THREE.Vector2(0.8, 0.8), color: 0xffffff, roughness: 1.0, metalness: 0 })
       );
       ground.rotation.x = -Math.PI / 2;
       ground.receiveShadow = true;
