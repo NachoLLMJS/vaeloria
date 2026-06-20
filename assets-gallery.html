@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VAELORIA — Asset Gallery</title>
+  <style>
+    :root { --ink:#1b1b22; --muted:#8a8a94; --line:#ececf1; --accent:#c8a838; --accent-soft:#fbf6e6; }
+    * { box-sizing:border-box; }
+    html, body { margin:0; background:#ffffff; color:var(--ink); font-family:-apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+    header { position:sticky; top:0; background:#ffffffec; backdrop-filter:blur(8px); border-bottom:1px solid var(--line); padding:13px 22px; z-index:10; display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+    header h1 { font-size:17px; margin:0; font-weight:800; letter-spacing:.4px; }
+    header h1 small { color:var(--accent); }
+    .count { color:var(--muted); font-size:13px; }
+    .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+    .tab { padding:6px 13px; border:1px solid var(--line); border-radius:999px; font-size:13px; cursor:pointer; color:var(--muted); background:#fff; user-select:none; }
+    .tab.active { color:var(--ink); border-color:var(--accent); background:var(--accent-soft); font-weight:600; }
+    #search { margin-left:auto; padding:8px 13px; border:1px solid var(--line); border-radius:8px; font-size:14px; width:240px; outline:none; }
+    #search:focus { border-color:var(--accent); }
+    main { padding:18px 22px 60px; }
+    .section { margin-top:10px; }
+    .section-title { font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:1.2px; margin:24px 0 12px; }
+    .section-title b { color:var(--ink); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(148px, 1fr)); gap:14px; }
+    .tile { border:1px solid var(--line); border-radius:11px; background:#fff; overflow:hidden; cursor:pointer; transition:box-shadow .15s, transform .15s, border-color .15s; }
+    .tile:hover { box-shadow:0 8px 22px #00000012; transform:translateY(-2px); border-color:#dcdce3; }
+    .tile .thumb { aspect-ratio:1; width:100%; display:flex; align-items:center; justify-content:center; background:
+        linear-gradient(45deg,#fafafb 25%,transparent 25%,transparent 75%,#fafafb 75%) 0 0/18px 18px,
+        linear-gradient(45deg,#fafafb 25%,#fff 25%,#fff 75%,#fafafb 75%) 9px 9px/18px 18px; }
+    .tile .thumb canvas, .tile .thumb img { max-width:100%; max-height:100%; display:block; object-fit:contain; }
+    .spin { width:20px; height:20px; border:3px solid #eaeaea; border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .tile .label { font-size:12px; padding:8px 10px; border-top:1px solid var(--line); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tile .label small { color:var(--muted); display:block; font-size:10px; margin-top:1px; }
+    .empty { color:var(--muted); padding:48px; text-align:center; }
+    /* modal */
+    #modal { position:fixed; inset:0; background:#ffffffe8; backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:50; }
+    #modal.open { display:flex; }
+    .viewer { width:min(82vw, 680px); height:min(82vh, 680px); background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 24px 70px #00000022; position:relative; }
+    .viewer canvas { width:100%; height:100%; border-radius:16px; display:block; cursor:grab; }
+    .viewer canvas:active { cursor:grabbing; }
+    .viewer .mlabel { position:absolute; left:18px; top:15px; font-weight:700; font-size:14px; }
+    .viewer .mlabel small { display:block; color:var(--muted); font-weight:400; font-size:11px; }
+    .viewer .mpath { position:absolute; left:18px; bottom:14px; color:var(--muted); font-size:11px; font-family:ui-monospace, monospace; }
+    .viewer .close { position:absolute; right:13px; top:9px; font-size:26px; line-height:1; cursor:pointer; color:var(--muted); background:none; border:none; }
+    .viewer .close:hover { color:var(--ink); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>VAELORIA <small>·</small> Asset Gallery</h1>
+    <span class="count" id="count">cargando…</span>
+    <div class="tabs" id="tabs"></div>
+    <input id="search" placeholder="Buscar asset…" autocomplete="off" />
+  </header>
+  <main id="main"><p class="empty">Cargando assets…</p></main>
+  <div id="modal">
+    <div class="viewer">
+      <button class="close" title="Cerrar">×</button>
+      <div class="mlabel"></div>
+      <canvas></canvas>
+      <div class="mpath"></div>
+    </div>
+  </div>
+  <script type="module" src="/src/tools/assets_gallery.ts"></script>
+</body>
+</html>

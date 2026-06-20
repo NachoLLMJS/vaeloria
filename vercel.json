@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "node scripts/build_assets_manifest.mjs && vite build --config vite.gallery.config.mts",
+  "outputDirectory": "dist-gallery",
+  "rewrites": [{ "source": "/", "destination": "/assets-gallery.html" }]
+}

@@ -19,6 +19,7 @@ export default defineConfig({
         main: fileURLToPath(new URL('index.html', import.meta.url)),
         admin: fileURLToPath(new URL('admin.html', import.meta.url)),
         gearPreview: fileURLToPath(new URL('gear-preview.html', import.meta.url)),
+        assetsGallery: fileURLToPath(new URL('assets-gallery.html', import.meta.url)),
       },
     },
   },
