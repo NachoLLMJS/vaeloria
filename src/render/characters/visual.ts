@@ -99,7 +99,7 @@ export class CharacterVisual {
   private authoredBowNodes: THREE.Object3D[] = [];
   private authoredBowScaleRoots: THREE.Object3D[] = [];
   private authoredBowOriginalScales = new Map<THREE.Object3D, THREE.Vector3>();
-  private craftedBowMaterials = new Map<THREE.Material, THREE.Material>();
+  private styledBowMaterials = new Map<string, THREE.Material>();
   private equippedWeapon: THREE.Object3D | null = null;
   private equippedWeaponTemplate: THREE.Object3D | null = null;
   private hideEquippedWeaponForHarvest = false;
@@ -397,14 +397,14 @@ export class CharacterVisual {
       return;
     }
     for (const [node, wasVisible] of this.originalWeaponVisibility) node.visible = active && !useAuthoredBow ? false : wasVisible;
-    if (!useAuthoredBow) this.applyAuthoredBowStyle(false);
+    if (!useAuthoredBow) this.applyAuthoredBowStyle('default');
     if (useAuthoredBow) {
       // Quaternius ranger already has a correctly socketed/animated bow on
       // Weapon.R. External bow models had incompatible pivots, so crafted/golden
-      // hunter weapons reuse the authored bow pose. The crafted bow gets a
-      // chunky purple skin on that stable default geometry.
-      const craftedPurpleBow = /bow_wooden|wooden/i.test(template.name);
-      this.applyAuthoredBowStyle(craftedPurpleBow);
+      // hunter weapons reuse the authored bow pose. Crafted becomes bigger and
+      // purple; golden becomes chunkier, metallic gold, and emissive/glowy.
+      const authoredBowStyle = /bow_golden|golden/i.test(template.name) ? 'golden' : (/bow_wooden|wooden/i.test(template.name) ? 'crafted' : 'default');
+      this.applyAuthoredBowStyle(authoredBowStyle);
       for (const node of this.authoredBowNodes) node.visible = true;
       if (this.equippedWeapon) this.equippedWeapon.visible = false;
       return;
@@ -441,11 +441,13 @@ export class CharacterVisual {
     this.equippedWeapon.rotation.set(transform.rx ?? -3.03, transform.ry ?? 0, transform.rz ?? 1.57);
   }
 
-  private applyAuthoredBowStyle(craftedPurple: boolean): void {
-    const scale = craftedPurple ? 1.32 : 1;
+  private applyAuthoredBowStyle(style: 'default' | 'crafted' | 'golden'): void {
     for (const node of this.authoredBowScaleRoots) {
       const original = this.authoredBowOriginalScales.get(node);
-      if (original) node.scale.copy(original).multiplyScalar(scale);
+      if (!original) continue;
+      if (style === 'crafted') node.scale.copy(original).multiplyScalar(1.32);
+      else if (style === 'golden') node.scale.copy(original).multiplyScalar(1.55);
+      else node.scale.copy(original);
     }
     for (const node of this.authoredBowNodes) {
       node.traverse((o) => {
@@ -453,24 +455,38 @@ export class CharacterVisual {
         if (!mesh.isMesh) return;
         const original = this.originalMaterials.get(mesh);
         if (!original) return;
-        if (!craftedPurple) {
+        if (style === 'default') {
           mesh.material = original;
           return;
         }
-        const applyPurple = (mat: THREE.Material): THREE.Material => {
-          let purple = this.craftedBowMaterials.get(mat);
-          if (!purple) {
-            purple = mat.clone();
-            const maybeColored = purple as THREE.MeshStandardMaterial | THREE.MeshPhongMaterial;
-            if ('color' in maybeColored) maybeColored.color.setHex(0x8b2cff);
-            if ('emissive' in maybeColored) maybeColored.emissive.setHex(0x240044);
-            if ('roughness' in maybeColored) maybeColored.roughness = 0.55;
-            if ('metalness' in maybeColored) maybeColored.metalness = 0.18;
-            this.craftedBowMaterials.set(mat, purple);
+        const applyStyle = (mat: THREE.Material): THREE.Material => {
+          const key = `${style}:${mat.uuid}`;
+          let styled = this.styledBowMaterials.get(key);
+          if (!styled) {
+            styled = mat.clone();
+            const maybeColored = styled as THREE.MeshStandardMaterial | THREE.MeshPhongMaterial;
+            if (style === 'crafted') {
+              if ('color' in maybeColored) maybeColored.color.setHex(0x8b2cff);
+              if ('emissive' in maybeColored) maybeColored.emissive.setHex(0x240044);
+              if ('roughness' in maybeColored) maybeColored.roughness = 0.55;
+              if ('metalness' in maybeColored) maybeColored.metalness = 0.18;
+            } else {
+              if ('color' in maybeColored) maybeColored.color.setHex(0xffe119);
+              if ('emissive' in maybeColored) maybeColored.emissive.setHex(0xffcc00);
+              if ('emissiveIntensity' in maybeColored) maybeColored.emissiveIntensity = 1.25;
+              if ('roughness' in maybeColored) maybeColored.roughness = 0.18;
+              if ('metalness' in maybeColored) maybeColored.metalness = 0.85;
+              if ('map' in maybeColored) maybeColored.map = null;
+              if ('normalMap' in maybeColored) maybeColored.normalMap = null;
+              if ('roughnessMap' in maybeColored) maybeColored.roughnessMap = null;
+              if ('metalnessMap' in maybeColored) maybeColored.metalnessMap = null;
+              styled.needsUpdate = true;
+            }
+            this.styledBowMaterials.set(key, styled);
           }
-          return purple;
+          return styled;
         };
-        mesh.material = Array.isArray(original) ? original.map(applyPurple) : applyPurple(original);
+        mesh.material = Array.isArray(original) ? original.map(applyStyle) : applyStyle(original);
       });
     }
   }
