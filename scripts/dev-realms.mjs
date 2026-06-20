@@ -14,8 +14,8 @@ import { existsSync } from 'node:fs';
 const REALMS = [
   { name: 'VAELORIA Premium', port: 8786, type: 'Premium', premium: true },
   { name: 'VAELORIA1', port: 8787, type: 'Normal' },
-  { name: 'VAELORIA2', port: 8788, type: 'PvP' },
-  { name: 'VAELORIA3', port: 8789, type: 'RP' },
+  { name: 'VAELORIA2', port: 8788, type: 'Normal' },
+  { name: 'VAELORIA3', port: 8789, type: 'Normal' },
 ];
 
 const SERVER = 'dist-server/server.cjs';

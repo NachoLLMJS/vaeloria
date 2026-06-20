@@ -1,11 +1,10 @@
 // Player-adjustable game settings (camera, audio, graphics) surfaced in the
 // Esc options menu. Pure + persisted to localStorage; main.ts applies each
-// value to the live subsystem (Input / GameAudio / MusicDirector / Renderer).
+// value to the live subsystem (Input / GameAudio / Renderer).
 
 export interface GameSettings {
   cameraSpeed: number;  // mouse-look sensitivity multiplier (1 = the old fixed speed)
   sfxVolume: number;    // 0..1
-  musicVolume: number;  // 0..1
   brightness: number;   // tone-mapping exposure multiplier
   renderScale: number;  // resolution multiplier on top of the device pixel ratio
 }
@@ -18,7 +17,6 @@ interface Range { min: number; max: number; def: number }
 export const SETTING_RANGES: Record<keyof GameSettings, Range> = {
   cameraSpeed: { min: 0.25, max: 1.25, def: 0.7 },
   sfxVolume: { min: 0, max: 1, def: 0.8 },
-  musicVolume: { min: 0, max: 1, def: 0.8 },
   brightness: { min: 0.6, max: 1.5, def: 1 },
   renderScale: { min: 0.5, max: 1, def: 1 },
 };

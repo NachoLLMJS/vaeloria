@@ -5,7 +5,6 @@ import { Keybinds } from './game/keybinds';
 import { Settings, GameSettings } from './game/settings';
 import { Hud } from './ui/hud';
 import { audio } from './game/audio';
-import { music } from './game/music';
 import { handlePickedEntity } from './game/interactions';
 import { Api, ClientWorld, CharacterSummary } from './net/online';
 import { mountPrivyRealmLogin } from './net/privy_realm_auth';
@@ -181,7 +180,6 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
     switch (key) {
       case 'cameraSpeed': input.setCameraSpeed(v); break;
       case 'sfxVolume': audio.setVolume(v); break;
-      case 'musicVolume': music.setVolume(v); break;
       case 'brightness': renderer.setBrightness(v); break;
       case 'renderScale': renderer.setRenderScale(v); break;
     }
@@ -636,10 +634,11 @@ function showRealmList(dir?: import('./net/online').RealmDirectory): void {
       const minHold = r.minVaeloria ?? d.premiumMinVaeloria ?? 1000;
       const locked = Boolean(r.premium) && d.vaeloriaHoldings < minHold;
       const premiumTag = r.premium ? `<span class="rn-chars">Premium · ${minHold.toLocaleString()}+ VAELORIA</span>` : '';
+      const typeLabel = r.premium ? 'Premium' : 'Normal';
       return `<div class="realm-row${locked ? ' locked' : ''}" data-name="${r.name}" data-url="${r.url}" data-locked="${locked ? '1' : '0'}">
         <div><div class="realm-name">${r.name}${charTag}${premiumTag}<span class="rn-rec" data-rec hidden>Recommended</span></div>
           <div class="realm-sub" data-sub>${locked ? `Locked — your wallet has ${d.vaeloriaHoldings.toLocaleString()} VAELORIA` : 'Checking status…'}</div></div>
-        <div class="realm-type">${r.type}</div>
+        <div class="realm-type">${typeLabel}</div>
         <div class="realm-pop offline" data-pop>${locked ? 'Locked' : '—'}</div>
       </div>`;
     }).join('');
@@ -804,7 +803,6 @@ function fatalOverlay(message: string): void {
 function enterWorld(c: CharacterSummary): void {
   if (!beginWorldEntry()) return;
   audio.init();
-  music.init();
   showLoadingScreen('Connecting to realm…');
   const world = new ClientWorld(api.token!, c.id, c.class, api.base);
   // wait for hello + first snapshot so the world starts populated
@@ -1209,7 +1207,6 @@ function wireStartScreens(): void {
     }
 
     audio.init();
-    music.init();
     const offlineChar = createOfflineCharacter(name, cls);
     startOffline(offlineChar.class, offlineChar.name, offlineChar.id, offlineChar.state ?? null);
   };

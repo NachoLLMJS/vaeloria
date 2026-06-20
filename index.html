@@ -744,18 +744,14 @@
   #title-logo {
     grid-row: 1;
     grid-column: 1;
-    width: auto;
-    max-width: min(720px, 86vw);
+    display: block;
+    width: min(390px, 46vw);
     height: auto;
-    margin-bottom: 36px;
-    padding: 8px 20px;
-    font-family: var(--font-heading);
-    font-size: clamp(54px, 10vw, 118px);
-    line-height: 0.9;
-    letter-spacing: 0.08em;
-    color: #f6d46b;
-    text-shadow: 0 0 24px rgba(199, 148, 26, 0.65), 3px 3px 0 #1c1208, 7px 7px 12px #000;
-    filter: drop-shadow(0 0 28px rgba(199, 148, 26, 0.35));
+    margin: 0 auto 34px;
+    padding: 0;
+    object-fit: contain;
+    object-position: center;
+    filter: drop-shadow(0 0 28px rgba(199, 148, 26, 0.45)) drop-shadow(3px 3px 8px #000);
     animation: logo-pulse 8s ease-in-out infinite alternate;
   }
 
@@ -1669,14 +1665,15 @@
 
   .cs-realm { font-size: 11px; color: #7fd4ff; font-family: var(--title-font); letter-spacing: 0.3px; }
   .btn.btn-small { padding: 4px 10px; font-size: 11px; margin: 0 0 10px; }
-  #realm-panel { width: min(440px, 92vw); }
-  #realm-list { margin: 8px 0 12px; max-height: 50vh; overflow-y: auto; border: 1px solid #463a1c; border-radius: 5px; }
+  #realm-panel { width: min(440px, 92vw); margin-top: -86px; padding: 18px 18px 20px; background: linear-gradient(168deg, #1a1510f5 0%, #110c08f7 58%, #0a0705fa 100%); border: 1px solid #6b4d19; border-radius: 8px; box-shadow: 0 18px 46px rgba(0,0,0,.82), inset 0 0 22px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,209,92,.08); }
+  #realm-panel .auth-title { color: var(--gold); text-shadow: 0 0 12px rgba(255,209,0,.28), 2px 2px 0 #000; letter-spacing: 1px; margin-bottom: 12px; }
+  #realm-list { margin: 8px 0 14px; max-height: 50vh; overflow-y: auto; border: 1px solid #5e4218; border-radius: 6px; background: rgba(10,8,5,.62); padding: 5px; }
   .realm-loading { padding: 16px; text-align: center; color: #887c5c; font-size: 13px; }
   .realm-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px;
-    padding: 9px 12px; cursor: pointer; border-bottom: 1px solid #2a2418; }
-  .realm-row:last-child { border-bottom: none; }
-  .realm-row:hover { background: #ffffff10; }
-  .realm-row.sel { background: linear-gradient(#2a2436, #161220); box-shadow: inset 3px 0 0 var(--gold); }
+    padding: 9px 10px; cursor: pointer; border: 1px solid #403018; border-radius: 6px; margin-bottom: 6px; background: linear-gradient(180deg, #21170cee, #100b06ee); }
+  .realm-row:last-child { margin-bottom: 0; }
+  .realm-row:hover { border-color: #9a7430; background: linear-gradient(180deg, #2a1d0fee, #130d07ee); }
+  .realm-row.sel { background: linear-gradient(180deg, #2f2414ee, #171007ee); box-shadow: inset 3px 0 0 var(--gold), 0 0 10px rgba(255,209,0,.12); }
   .realm-row.offline { opacity: 0.55; }
   .realm-row.locked { opacity: .72; cursor: not-allowed; background: linear-gradient(90deg, rgba(255,209,0,.08), transparent); }
   .realm-row.locked:hover { background: linear-gradient(90deg, rgba(255,209,0,.12), transparent); }
@@ -1691,6 +1688,25 @@
   .realm-pop.high { color: #ff9030; }
   .realm-pop.full { color: #ff5040; }
   .realm-pop.offline { color: #888; }
+  .realm-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .realm-actions .btn { width: min(220px, 48%); margin: 0; }
+  #realm-panel .btn,
+  .mode-twitter {
+    border: 1px solid #6b4d19;
+    border-radius: 5px;
+    color: #ffe58a;
+    background: linear-gradient(180deg, #4b3412ee, #171007ee);
+    box-shadow: inset 0 1px 0 #ffffff14, 0 0 10px rgba(255,209,0,.08);
+    text-shadow: 1px 1px 0 #000;
+    text-align: center;
+    text-decoration: none;
+    font-family: var(--title-font);
+  }
+  #realm-panel .btn:hover,
+  .mode-twitter:hover { border-color: #ffd76b; color: #fff4bb; background: linear-gradient(180deg, #644315ee, #1d1408ee); }
+  .btn-twitter { border-color: #6b4d19; color: #ffe58a; background: linear-gradient(180deg, #4b3412ee, #171007ee); box-shadow: inset 0 1px 0 #ffffff14, 0 0 10px rgba(255,209,0,.08); text-align: center; text-decoration: none; }
+  .btn-twitter:hover { border-color: #ffd76b; color: #fff4bb; background: linear-gradient(180deg, #644315ee, #1d1408ee); }
+  .mode-twitter { position: fixed; right: 26px; bottom: 24px; z-index: 15; width: 150px; padding: 9px 14px; }
 
   /* ---------- chat ---------- */
   #chat-input { position: absolute; left: 12px; bottom: 204px; width: 370px; display: none; z-index: 25;
@@ -2369,9 +2385,9 @@
       gap: var(--spacing-md);
     }
 
-    /* Keep the logo size completely stable on desktop */
+    /* Keep the main logo centered and large on desktop */
     #title-logo {
-      width: 320px !important;
+      width: min(390px, 46vw) !important;
     }
   }
 
@@ -2858,9 +2874,6 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h12l-1 11H7L6 9Z"/><path d="M9 9a3 3 0 0 1 6 0"/><path d="M6 13.5h12"/></svg>
         <span class="keybind">b</span>
       </button>
-      <button class="micro-btn" id="mm-music" title="Toggle Music" aria-label="Toggle Music">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
-      </button>
       <button class="micro-btn" id="social-fab" title="Friends &amp; Guild (O)" aria-label="Friends &amp; Guild">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.1 2.7-5 6-5s6 1.9 6 5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.2"/><path d="M17.2 14.2c2.2.5 3.8 2.2 3.8 4.8"/></svg>
       </button>
@@ -2886,7 +2899,7 @@
       <div class="portal-ring-reverse"></div>
       <div class="nebula-overlay"></div>
     </div>
-    <div id="title-logo" role="img" aria-label="VAELORIA">VAELORIA</div>
+    <img id="title-logo" src="/images/vaeloria-logo.png" alt="VAELORIA" />
 
     <div id="mode-select">
       <img class="mode-top-logo" src="/images/vaeloria-logo.png" alt="VAELORIA" />
@@ -2927,6 +2940,7 @@
       <div class="mode-center-line" aria-hidden="true"></div>
       <div class="mode-center-crest" aria-hidden="true"></div>
       <div class="mode-footer">Choose Your Game Mode</div>
+      <a class="btn btn-twitter mode-twitter" href="https://x.com/VaeloriaRPG" target="_blank" rel="noopener noreferrer">X/Twitter</a>
       <div id="performance-tip"><b>TIP:</b> For the smoothest experience, turn off ad blocker extensions on this site. Community reports found some blockers can cause lag.</div>
     </div>
 

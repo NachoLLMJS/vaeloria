@@ -11,7 +11,6 @@ import { AbilityEffect, CONSUME_DURATION, Entity, GCD, ItemDef, SimEvent, dist2d
 import { terrainHeight, WATER_LEVEL, roadDistance, generateDecorations, isVisibleTreeDecoration } from '../sim/world';
 import { Meters } from './meters';
 import { audio } from '../game/audio';
-import { music } from '../game/music';
 import { iconDataUrl, QUALITY_COLOR } from './icons';
 import { CharacterViewer } from './character_viewer';
 import { Keybinds, BIND_ACTIONS, BIND_CATEGORIES, isReservedCode, keyLabel } from '../game/keybinds';
@@ -167,13 +166,6 @@ export class Hud {
     $('#social-fab').addEventListener('click', () => this.toggleSocial());
     $('#profile-btn')?.addEventListener('click', () => this.toggleProfile());
     $('#marketplace-btn')?.addEventListener('click', () => this.toggleMarketplace());
-    const musicBtn = $('#mm-music');
-    const styleMusicBtn = () => { musicBtn.style.color = music.enabled ? '#ffd100' : '#666'; };
-    styleMusicBtn();
-    musicBtn.addEventListener('click', () => {
-      music.setEnabled(!music.enabled);
-      styleMusicBtn();
-    });
     const startZone = zoneAt(sim.player.pos.z);
     this.lastZoneId = startZone.id;
     this.showBanner(startZone.name);
@@ -664,19 +656,6 @@ export class Hud {
         this.lastZoneId = currentZone.id;
       }
     }
-
-    // soundtrack: pick the zone theme and layer in combat percussion.
-    // Combat = a mob is on us, or we traded blows in the last few seconds
-    // (the wire protocol doesn't ship the inCombat flag).
-    let aggroed = false;
-    for (const e of sim.entities.values()) {
-      if (e.kind === 'mob' && !e.dead && e.aggroTargetId === sim.playerId) { aggroed = true; break; }
-    }
-    const inCombat = aggroed || performance.now() - this.lastCombatEventAt < 5000;
-    const hub = currentZone.hub;
-    const zone = inDungeon ? 'dungeon'
-      : Math.hypot(p.pos.x - hub.x, p.pos.z - hub.z) < hub.radius + 10 ? 'town' : currentZone.biome;
-    music.update(zone, inCombat);
 
     this.updateQuestTracker();
     this.updatePartyFrames();
@@ -2975,19 +2954,10 @@ export class Hud {
   private renderAudio(): void {
     const body = this.settingsViewShell('Audio');
     this.settingSlider(body, 'Sound Effects', 'sfxVolume');
-    this.settingSlider(body, 'Music Volume', 'musicVolume');
-    const row = document.createElement('div');
-    row.className = 'set-row';
-    const name = document.createElement('span');
-    name.className = 'set-name';
-    name.textContent = 'Music';
-    const toggle = document.createElement('button');
-    toggle.className = 'btn set-toggle';
-    const sync = () => { toggle.textContent = music.enabled ? 'On' : 'Off'; toggle.classList.toggle('off', !music.enabled); };
-    sync();
-    toggle.addEventListener('click', () => { audio.click(); music.setEnabled(!music.enabled); sync(); });
-    row.append(name, toggle);
-    body.appendChild(row);
+    const note = document.createElement('div');
+    note.className = 'set-note';
+    note.textContent = 'Music is disabled for Vaeloria; only gameplay sound effects remain.';
+    $('#options-menu').appendChild(note);
     this.settingsViewFooter();
   }
 
