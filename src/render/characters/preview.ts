@@ -382,8 +382,8 @@ export class CharacterPreview {
   private buildSunAndGodRays(): void {
     // light-source disc — far back (beyond the castle), peeking above it. The
     // GodRaysEffect requires it to be transparent and to not write depth.
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffe8c0, transparent: true, depthWrite: false, fog: false });
-    this.sunMesh = new THREE.Mesh(new THREE.SphereGeometry(22, 24, 24), sunMat);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdca6, transparent: true, depthWrite: false, fog: false });
+    this.sunMesh = new THREE.Mesh(new THREE.SphereGeometry(16, 24, 24), sunMat);
     this.sunMesh.position.copy(this.camera.position).addScaledVector(this.psun, 250);
     this.scene.add(this.sunMesh);
 
@@ -391,12 +391,12 @@ export class CharacterPreview {
     // used to do this); on the right there's none, so a tree is placed on the
     // camera->sun ray below. Keep the effect moderate — the edge does the work.
     const godRays = new GodRaysEffect(this.camera, this.sunMesh, {
-      density: 0.97,
-      decay: 0.96,
-      weight: 0.72,
-      exposure: 0.8,
-      samples: 110,
-      clampMax: 1.0,
+      density: 0.96,
+      decay: 0.94,
+      weight: 0.46,
+      exposure: 0.46,
+      samples: 100,
+      clampMax: 0.6,
       resolutionScale: 0.9,
       kernelSize: KernelSize.LARGE,
       blur: true,
