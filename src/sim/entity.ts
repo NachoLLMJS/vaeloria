@@ -51,7 +51,7 @@ function manaFromIntellect(int: number): number {
 }
 
 // Recompute all derived stats for the player from class, level, gear and buffs.
-export function recalcPlayerStats(e: Entity, cls: PlayerClass, equipment: PlayerEquipment): void {
+export function recalcPlayerStats(e: Entity, cls: PlayerClass, equipment: PlayerEquipment, petBonus = 0): void {
   const def = CLASSES[cls];
   const lvl = e.level;
   const s: Stats = {
@@ -73,6 +73,9 @@ export function recalcPlayerStats(e: Entity, cls: PlayerClass, equipment: Player
     s.int += item.stats.int ?? 0;
     s.spi += item.stats.spi ?? 0;
     s.armor += item.stats.armor ?? 0;
+  }
+  if (petBonus > 0) {
+    s.str += petBonus; s.agi += petBonus; s.sta += petBonus; s.int += petBonus; s.spi += petBonus;
   }
   // Buff auras
   let bonusAp = 0;

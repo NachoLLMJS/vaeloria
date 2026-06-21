@@ -91,6 +91,7 @@ export interface IWorld {
   moveInput: MoveInput;
   inventory: InvSlot[];
   equipment: Partial<Record<EquipSlot, string>>;
+  petFishFed: number;
   copper: number;
   xp: number;
   known: ResolvedAbility[];
@@ -116,6 +117,7 @@ export interface IWorld {
   abandonQuest(questId: string): void;
   equipItem(itemId: string): void;
   useItem(itemId: string): void;
+  feedPetFish(count: number): void;
   craftClassWeapon(tier: 'normal' | 'golden'): void;
   buyItem(npcId: number, itemId: string): void;
   sellItem(itemId: string): void;

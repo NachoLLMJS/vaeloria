@@ -238,6 +238,7 @@ export const MEDIA_ASSETS: Record<string, string> =
   "models/gear/armaduras-etc/icons/Sword_Big.png": "/media/models/gear/armaduras-etc/icons/Sword_Big.3eb5a142c96c.png",
   "models/gear/armaduras-etc/icons/Sword_Big_Golden.png": "/media/models/gear/armaduras-etc/icons/Sword_Big_Golden.dc31edd600ba.png",
   "models/gear/armaduras-etc/icons/Sword_Golden.png": "/media/models/gear/armaduras-etc/icons/Sword_Golden.3513485b4bd1.png",
+  "models/pets/rpg_monster_bat.glb": "/media/models/pets/rpg_monster_bat.91252ae13f04.glb",
   "models/props/anvil.glb": "/media/models/props/anvil.6e95bdb978f6.glb",
   "models/props/barrel.glb": "/media/models/props/barrel.deb062e0fa27.glb",
   "models/props/bell_tower.glb": "/media/models/props/bell_tower.c264ba9d8a00.glb",

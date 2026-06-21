@@ -548,6 +548,7 @@ export class ClientWorld implements IWorld {
       this.xp = s.xp ?? 0;
       this.copper = s.copper ?? 0;
       if (s.inv !== undefined) { this.inventory = s.inv; this.invChanged = true; }
+      if (s.petFishFed !== undefined) this.petFishFed = Number(s.petFishFed) || 0;
       if (s.equip !== undefined) this.equipment = s.equip;
       if (s.qlog !== undefined) this.questLog = new Map((s.qlog as QuestProgress[]).map((q) => [q.questId, q]));
       if (s.qdone !== undefined) this.questsDone = new Set(s.qdone);
@@ -660,6 +661,9 @@ export class ClientWorld implements IWorld {
   }
   useItem(itemId: string): void {
     this.cmd({ cmd: 'use', item: itemId });
+  }
+  feedPetFish(count: number): void {
+    this.cmd({ cmd: 'feed_pet', count });
   }
   craftClassWeapon(tier: 'normal' | 'golden'): void {
     this.cmd({ cmd: 'craft_class_weapon', tier });

@@ -25,6 +25,7 @@ import { FarmsteadView } from './farmstead';
 import { buildFishingView, FishingView } from './fishing';
 import { shouldRenderStealthGhost } from './stealth';
 import { loadGltf } from './assets/loader';
+import { PetFollowerView } from './pet';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -183,6 +184,7 @@ export class Renderer {
   vfx: Vfx;
   private axeTemplate: THREE.Object3D | null = null;
   private fishingRodTemplate: THREE.Object3D | null = null;
+  private petFollower: PetFollowerView;
 
   private lowGfx: boolean;
   private post: PostPipeline | null = null;
@@ -214,6 +216,7 @@ export class Renderer {
     this.skyView = buildSky(LOW_GFX, SUN_ANCHOR);
     this.sky = this.skyView.dome;
     this.scene.add(this.sky);
+    this.petFollower = new PetFollowerView(this.scene, this.sim.cfg.seed);
 
     // IBL: prefilter the real per-biome HDRI equirects so PBR materials get
     // sky-matched ambient; swapped as the camera crosses biome bands (the
@@ -1122,6 +1125,7 @@ export class Renderer {
     this.foliage.update(p.pos.x, p.pos.z, this.camera.position.x, this.camera.position.z, fogFar);
 
     this.vfx.update(dt);
+    this.petFollower.update(dt, p, true, this.time);
 
     this.updateCamera(alpha);
     this.updateAmbience(p.pos.x, this.camera.position.y, dt);

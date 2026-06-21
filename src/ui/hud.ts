@@ -1,4 +1,6 @@
-import { formatMoney, ResolvedAbility } from '../sim/sim';
+import * as THREE from 'three';
+import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
+import { formatMoney, petStatBonus, ResolvedAbility } from '../sim/sim';
 import type { IWorld } from '../world_api';
 import { Renderer } from '../render/renderer';
 import {
@@ -13,6 +15,8 @@ import { Meters } from './meters';
 import { audio } from '../game/audio';
 import { iconDataUrl, QUALITY_COLOR } from './icons';
 import { CharacterViewer } from './character_viewer';
+import { loadGltf } from '../render/assets/loader';
+import { BAT_PET_MODEL_URL } from '../render/pet';
 import { Keybinds, BIND_ACTIONS, BIND_CATEGORIES, isReservedCode, keyLabel } from '../game/keybinds';
 import { Settings, GameSettings, SETTING_RANGES } from '../game/settings';
 import { chatPlayerContextActions } from './player_context_menu';
@@ -125,6 +129,10 @@ export class Hud {
   private marketplaceListings: MarketplaceListing[] = [];
   private marketplaceCategory: MarketplaceCategory | 'all' = 'all';
   private marketplaceCurrency: MarketplaceCurrency | 'all' = 'all';
+  private petPreviewStarted = false;
+  private petPreviewRenderer: THREE.WebGLRenderer | null = null;
+  private petPreviewMixer: THREE.AnimationMixer | null = null;
+  private petPreviewFrame = 0;
 
   private meters: Meters;
 
@@ -163,6 +171,7 @@ export class Hud {
     $('#mm-quest').addEventListener('click', () => this.toggleQuestLog());
     $('#mm-map').addEventListener('click', () => this.toggleMap());
     $('#mm-bag').addEventListener('click', () => this.toggleBags());
+    $('#mm-pet')?.addEventListener('click', () => this.togglePet());
     $('#social-fab').addEventListener('click', () => this.toggleSocial());
     $('#profile-btn')?.addEventListener('click', () => this.toggleProfile());
     $('#marketplace-btn')?.addEventListener('click', () => this.toggleMarketplace());
@@ -1462,6 +1471,123 @@ export class Hud {
     const npc = this.sim.entities.get(this.openGossipNpcId);
     if (npc) this.renderGossip(npc);
     else this.closeQuestDialog();
+  }
+
+  // -------------------------------------------------------------------------
+  // Pet UX
+  // -------------------------------------------------------------------------
+
+  private petFishCount(): number {
+    const ids = new Set(FISH_ITEM_IDS);
+    return this.sim.inventory.reduce((sum, s) => sum + (ids.has(s.itemId) ? s.count : 0), 0);
+  }
+
+  togglePet(): void {
+    const el = $('#pet-window');
+    if (el.style.display === 'block') { this.disposePetPreview(); el.style.display = 'none'; this.hideTooltip(); return; }
+    this.renderPet();
+    el.style.display = 'block';
+    this.startPetPreview();
+  }
+
+  private renderPet(): void {
+    const el = $('#pet-window');
+    const fed = this.sim.petFishFed ?? 0;
+    const bonus = petStatBonus(fed);
+    const fish = this.petFishCount();
+    const next = fed < 100 ? 100 : fed < 1000 ? 1000 : fed < 10000 ? 10000 : null;
+    const nextText = next ? `${Math.max(0, next - fed)} fish until next bond tier` : 'Max bond tier reached';
+    el.innerHTML = `
+      <div class="panel-title">Bat Pet <button class="x-btn" data-close>×</button></div>
+      <div class="pet-panel-body">
+        <div id="pet-preview" class="pet-preview"></div>
+        <div class="pet-info">
+          <div class="pet-name">Cave Bat Companion</div>
+          <div class="pet-status">Passive flying pet. Follows you and does not attack.</div>
+          <div class="pet-statline">Current bonus: <b>+${bonus}</b> all stats</div>
+          <div class="pet-statline">Fish fed: <b>${fed.toLocaleString()}</b></div>
+          <div class="pet-statline">Fish in bags: <b>${fish.toLocaleString()}</b></div>
+          <div class="pet-next">${nextText}</div>
+          <div class="pet-buttons">
+            <button class="btn" data-feed="1">Feed 1</button>
+            <button class="btn" data-feed="100">Feed 100</button>
+            <button class="btn" data-feed="1000">Feed 1000</button>
+            <button class="btn" data-feed="10000">Feed 10000</button>
+          </div>
+          <div class="pet-note">Tiers: 100 fish = +1, 1000 fish = +3, 10000 fish = +4 to STR/AGI/STA/INT/SPI.</div>
+        </div>
+      </div>`;
+    el.querySelector('[data-close]')?.addEventListener('click', () => { this.disposePetPreview(); el.style.display = 'none'; });
+    el.querySelectorAll<HTMLButtonElement>('[data-feed]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        audio.click();
+        const count = Number(btn.dataset.feed ?? '1');
+        this.disposePetPreview();
+        this.sim.feedPetFish(count);
+        this.renderPet();
+        this.startPetPreview();
+        this.onInventoryChanged();
+      });
+    });
+  }
+
+  private disposePetPreview(): void {
+    if (this.petPreviewFrame) cancelAnimationFrame(this.petPreviewFrame);
+    this.petPreviewFrame = 0;
+    this.petPreviewMixer = null;
+    this.petPreviewStarted = false;
+    if (this.petPreviewRenderer) {
+      this.petPreviewRenderer.dispose();
+      this.petPreviewRenderer = null;
+    }
+    const host = document.querySelector('#pet-preview');
+    if (host) host.innerHTML = '';
+  }
+
+  private startPetPreview(): void {
+    const host = $('#pet-preview');
+    if (this.petPreviewStarted || !host) return;
+    this.petPreviewStarted = true;
+    const canvas = document.createElement('canvas');
+    host.innerHTML = '';
+    host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    this.petPreviewRenderer = renderer;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
+    camera.position.set(0, 0.35, 4.2);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x554433, 2.1));
+    const key = new THREE.DirectionalLight(0xffe7ba, 2.5);
+    key.position.set(3, 4, 5);
+    scene.add(key);
+    void loadGltf(BAT_PET_MODEL_URL).then((gltf) => {
+      const model = cloneSkeleton(gltf.scene);
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.sub(center);
+      model.rotation.y = Math.PI;
+      model.scale.setScalar(1.85 / (Math.max(size.x, size.y, size.z) || 1));
+      model.traverse((o) => { o.frustumCulled = false; });
+      scene.add(model);
+      this.petPreviewMixer = new THREE.AnimationMixer(model);
+      const idle = gltf.animations.find((a) => /idle/i.test(a.name)) ?? gltf.animations[0];
+      if (idle) this.petPreviewMixer.clipAction(idle).play();
+    });
+    let last = performance.now();
+    const frame = (now: number): void => {
+      this.petPreviewFrame = requestAnimationFrame(frame);
+      const rect = host.getBoundingClientRect();
+      const w = Math.max(120, Math.floor(rect.width));
+      const h = Math.max(120, Math.floor(rect.height));
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      this.petPreviewMixer?.update(dt);
+      renderer.render(scene, camera);
+    };
+    this.petPreviewFrame = requestAnimationFrame(frame);
   }
 
   // -------------------------------------------------------------------------
@@ -3059,9 +3185,10 @@ export class Hud {
       this.sim.tradeCancel();
       closed = true;
     }
-    for (const id of ['#quest-dialog', '#loot-window', '#vendor-window', '#marketplace-window', '#profile-window', '#bags', '#char-window', '#spellbook', '#quest-log-window', '#map-window', '#report-window']) {
+    for (const id of ['#quest-dialog', '#loot-window', '#vendor-window', '#marketplace-window', '#profile-window', '#pet-window', '#bags', '#char-window', '#spellbook', '#quest-log-window', '#map-window', '#report-window']) {
       const el = $(id);
       if (el.style.display === 'block') {
+        if (id === '#pet-window') this.disposePetPreview();
         el.style.display = 'none';
         closed = true;
       }

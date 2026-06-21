@@ -56,10 +56,10 @@ export class CharacterViewer {
     const h = this.canvas.clientHeight || 250;
     this.renderer.setSize(w, h, false);
     this.cam.aspect = w / h;
-    // frame the full body (models are ~2.6 tall, feet at y0)
-    const dist = 4.6;
-    this.cam.position.set(0, 1.25, dist);
-    this.cam.lookAt(0, 1.05, 0);
+    // frame the full body with extra padding so armor/hood never clips.
+    const dist = 5.55;
+    this.cam.position.set(0, 1.28, dist);
+    this.cam.lookAt(0, 1.06, 0);
     this.cam.updateProjectionMatrix();
   }
 

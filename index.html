@@ -518,6 +518,16 @@
 
   #marketplace-window { left: 50%; top: 8%; transform: translateX(-50%); width: 760px; max-height: 78%; overflow: hidden; }
   #profile-window { left: 50%; top: 10%; transform: translateX(-50%); width: 620px; max-height: 74%; overflow: hidden; }
+  #pet-window { left: 50%; top: 11%; transform: translateX(-50%); width: 640px; max-height: 74%; overflow: hidden; }
+  .pet-panel-body { display: grid; grid-template-columns: 235px 1fr; gap: 14px; align-items: stretch; }
+  .pet-preview { min-height: 255px; border: 1px solid #5e4218; border-radius: 8px; background: radial-gradient(circle at 50% 35%, rgba(92,62,120,.28), rgba(5,4,8,.94) 72%); box-shadow: inset 0 0 24px #000b; overflow: hidden; }
+  .pet-preview canvas { display: block; width: 100%; height: 100%; }
+  .pet-name { font-family: var(--font-heading); color: var(--gold); font-size: 18px; margin-bottom: 5px; }
+  .pet-status, .pet-next, .pet-note { color: #c9b27a; font-size: 12px; line-height: 1.35; margin: 6px 0; }
+  .pet-statline { margin: 8px 0; color: #f0ebd8; font-size: 13px; }
+  .pet-statline b { color: #7fdc4f; }
+  .pet-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 12px 0; }
+  .pet-buttons .btn { width: 100%; }
   .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .profile-card { background: rgba(10,8,5,.62); border: 1px solid #5e4218; border-radius: 6px; padding: 9px; min-height: 84px; }
   .profile-label { color: #bca982; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
@@ -889,7 +899,7 @@
     z-index: 6;
     left: 50%;
     top: clamp(14px, 3vh, 30px);
-    width: clamp(110px, 14vw, 190px);
+    width: clamp(80px, 9.5vw, 140px);
     height: auto;
     transform: translateX(-50%);
     pointer-events: none;
@@ -1099,7 +1109,7 @@
     .mode-card p { font-size: 12px; letter-spacing: .14em; margin-top: 8px; }
     .mode-center-line { left: 0; right: 0; top: 50%; width: 100%; height: 2px; transform: translateY(-50%); }
     .mode-center-crest { width: 42px; height: 42px; }
-    .mode-top-logo { width: min(34vw, 120px); top: 8px; }
+    .mode-top-logo { width: min(27vw, 90px); top: 8px; }
     .mode-footer { display: none; }
   }
   .auth-panel { width: 360px; padding: 16px; }
@@ -2849,6 +2859,7 @@
     <div id="vendor-window" class="window panel"></div>
     <div id="marketplace-window" class="window panel"></div>
     <div id="profile-window" class="window panel"></div>
+    <div id="pet-window" class="window panel"></div>
     <div id="map-window" class="window panel"><canvas id="map-canvas" width="560" height="560"></canvas></div>
     <div id="options-menu" class="window panel"></div>
     <div id="social-window" class="window panel"></div>
@@ -2873,6 +2884,9 @@
       <button class="micro-btn" id="mm-bag" title="Bags (B)" aria-label="Bags">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h12l-1 11H7L6 9Z"/><path d="M9 9a3 3 0 0 1 6 0"/><path d="M6 13.5h12"/></svg>
         <span class="keybind">b</span>
+      </button>
+      <button class="micro-btn" id="mm-pet" title="Pet" aria-label="Pet">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c1.8-3.2 5-4.3 8-3.4-1.1 2.9-3.2 5-6 5.8 2.8.9 5 3 6 6-3.2.6-6.1-.5-8-3.5-1.9 3-4.8 4.1-8 3.5 1-3 3.2-5.1 6-6-2.8-.8-4.9-2.9-6-5.8 3-.9 6.2.2 8 3.4Z"/><circle cx="12" cy="10" r="1.7"/></svg>
       </button>
       <button class="micro-btn" id="social-fab" title="Friends &amp; Guild (O)" aria-label="Friends &amp; Guild">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.1 2.7-5 6-5s6 1.9 6 5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.2"/><path d="M17.2 14.2c2.2.5 3.8 2.2 3.8 4.8"/></svg>

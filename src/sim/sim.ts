@@ -171,6 +171,7 @@ export interface PlayerMeta {
   questsDone: Set<string>;
   counters: RewardCounters;
   autoEquip: boolean;
+  petFishFed: number;
 }
 
 // Persistable character state (stored as JSONB server-side).
@@ -187,6 +188,7 @@ export interface CharacterState {
   farms: FarmPlot[];
   questLog: { questId: string; counts: number[]; state: 'active' | 'ready' | 'done' }[];
   questsDone: string[];
+  petFishFed?: number;
 }
 
 // Pure quest-state computation, shared by the sim and the network client.
@@ -223,6 +225,17 @@ function isFormToggle(ability: AbilityDef): boolean {
 function isToggleBuff(ability: AbilityDef): boolean {
   return ability.effects.some((e) => e.type === 'selfBuff'
     && (e.kind === 'form_bear' || e.kind === 'form_cat' || e.kind === 'defensive_stance' || e.kind === 'stealth'));
+}
+
+export function petStatBonus(fishFed: number): number {
+  if (fishFed >= 10000) return 4;
+  if (fishFed >= 1000) return 3;
+  if (fishFed >= 100) return 1;
+  return 0;
+}
+
+function isFishItemId(itemId: string): boolean {
+  return itemId.startsWith('fish_');
 }
 
 export class Sim {
@@ -391,6 +404,7 @@ export class Sim {
       questsDone: new Set(),
       counters: freshCounters(),
       autoEquip: opts?.autoEquip ?? false,
+      petFishFed: opts?.state?.petFishFed ?? 0,
     };
     this.players.set(player.id, meta);
     if (this.primaryId === -1) this.primaryId = player.id;
@@ -422,7 +436,7 @@ export class Sim {
     }
 
     this.refreshKnownAbilities(meta, false);
-    recalcPlayerStats(player, cls, meta.equipment);
+    recalcPlayerStats(player, cls, meta.equipment, petStatBonus(meta.petFishFed));
     if (opts?.state) {
       player.hp = Math.max(1, Math.min(player.maxHp, opts.state.hp));
       player.resource = classDef.resourceType === 'mana'
@@ -498,6 +512,7 @@ export class Sim {
       farms: this.farms.filter((f) => this.farmBelongsTo(f, meta)).map((f) => ({ ...f, ownerPid: undefined })),
       questLog: [...meta.questLog.values()].map((q) => ({ questId: q.questId, counts: [...q.counts], state: q.state })),
       questsDone: [...meta.questsDone],
+      petFishFed: meta.petFishFed,
     };
   }
 
@@ -523,6 +538,9 @@ export class Sim {
   }
   get equipment(): PlayerEquipment {
     return this.primary.equipment;
+  }
+  get petFishFed(): number {
+    return this.primary.petFishFed;
   }
   get copper(): number {
     return this.primary.copper;
@@ -646,7 +664,7 @@ export class Sim {
     const r = this.resolve(pid);
     if (!r) return;
     r.e.level = Math.max(1, Math.min(MAX_LEVEL, level));
-    recalcPlayerStats(r.e, r.meta.cls, r.meta.equipment);
+    recalcPlayerStats(r.e, r.meta.cls, r.meta.equipment, petStatBonus(r.meta.petFishFed));
     r.e.hp = r.e.maxHp;
     if (r.e.resourceType === 'mana') r.e.resource = r.e.maxResource;
     this.refreshKnownAbilities(r.meta, false);
@@ -1271,7 +1289,7 @@ export class Sim {
     }
     if (statsDirty && e.kind === 'player') {
       const meta = this.players.get(e.id);
-      if (meta) recalcPlayerStats(e, meta.cls, meta.equipment);
+      if (meta) recalcPlayerStats(e, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
     }
   }
 
@@ -1847,7 +1865,7 @@ export class Sim {
             if (existing >= 0) {
               p.auras.splice(existing, 1);
               this.emit({ type: 'aura', targetId: p.id, name: ability.name, gained: false });
-              recalcPlayerStats(p, meta.cls, meta.equipment);
+              recalcPlayerStats(p, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
               break;
             }
           }
@@ -1866,7 +1884,7 @@ export class Sim {
             remaining: eff.duration, duration: eff.duration, value: eff.value,
             sourceId: p.id, school: ability.school,
           });
-          recalcPlayerStats(p, meta.cls, meta.equipment);
+          recalcPlayerStats(p, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
           break;
         }
         case 'gainResource': {
@@ -1958,7 +1976,7 @@ export class Sim {
     this.emit({ type: 'aura', targetId: target.id, name: aura.name, gained: true });
     if (target.kind === 'player') {
       const meta = this.players.get(target.id);
-      if (meta) recalcPlayerStats(target, meta.cls, meta.equipment);
+      if (meta) recalcPlayerStats(target, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
     }
   }
 
@@ -2398,7 +2416,7 @@ export class Sim {
       meta.xp -= xpForLevel(p.level);
       p.level++;
       meta.counters.levelUps++;
-      recalcPlayerStats(p, meta.cls, meta.equipment);
+      recalcPlayerStats(p, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
       p.hp = p.maxHp;
       if (p.resourceType === 'mana') p.resource = p.maxResource;
       this.emit({ type: 'levelup', level: p.level, pid: p.id });
@@ -2999,7 +3017,7 @@ export class Sim {
     this.removeItem(itemId, 1, meta.entityId);
     if (old) this.addItemSilent(old, 1, meta);
     meta.equipment[slot] = itemId;
-    recalcPlayerStats(p, meta.cls, meta.equipment);
+    recalcPlayerStats(p, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
     this.emit({ type: 'log', text: `Equipped ${def.name}.`, color: '#8f8', pid: meta.entityId });
   }
 
@@ -3046,6 +3064,24 @@ export class Sim {
       this.removeItem(slot.itemId, take, meta.entityId);
       left -= take;
     }
+  }
+
+  feedPetFish(count: number, pid?: number): void {
+    const r = this.resolve(pid);
+    if (!r) return;
+    const { meta, e: p } = r;
+    const desired = Math.max(1, Math.floor(count));
+    const available = this.countFish(meta);
+    const eaten = Math.min(desired, available);
+    if (eaten <= 0) { this.error(meta.entityId, 'You need fish to feed your pet.'); return; }
+    const before = petStatBonus(meta.petFishFed);
+    this.removeFish(eaten, meta);
+    meta.petFishFed += eaten;
+    const after = petStatBonus(meta.petFishFed);
+    recalcPlayerStats(p, meta.cls, meta.equipment, after);
+    this.emit({ type: 'log', text: `Your bat pet eats ${eaten} fish. Total fed: ${meta.petFishFed}.`, color: '#9cf', pid: meta.entityId });
+    if (after > before) this.emit({ type: 'log', text: `Pet bond increased: +${after} to all stats.`, color: '#7fdc4f', pid: meta.entityId });
+    this.onInventoryChangedForQuests(meta);
   }
 
   craftClassWeapon(tier: 'normal' | 'golden', pid?: number): void {
@@ -3483,7 +3519,7 @@ export class Sim {
     this.rebucket(p);
     p.facing = 0;
     p.auras = [];
-    recalcPlayerStats(p, meta.cls, meta.equipment);
+    recalcPlayerStats(p, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
     p.hp = p.maxHp;
     p.resource = p.resourceType === 'mana' ? p.maxResource : p.resourceType === 'energy' ? 100 : 0;
     p.targetId = null;
