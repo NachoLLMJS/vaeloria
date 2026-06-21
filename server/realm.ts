@@ -71,6 +71,8 @@ function parseRealms(raw: string | undefined): RealmEntry[] {
 const DEFAULT_INTERNAL_REALMS: RealmEntry[] = [
   entry(PREMIUM_REALM_NAME, '', 'Premium'),
   entry(DEFAULT_REALM_NAME, '', 'Normal'),
+  entry('VAELORIA2', '', 'Normal'),
+  entry('VAELORIA3', '', 'Normal'),
 ];
 
 export const REALM_DIRECTORY: RealmEntry[] = (() => {
