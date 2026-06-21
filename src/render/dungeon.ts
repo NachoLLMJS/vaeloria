@@ -139,6 +139,10 @@ for (const name of BITS_MODELS) {
   }));
 }
 
+const TUTORIAL_TREE_MODEL_URL = 'models/foliage/woc_new/Tree_1.glb';
+let tutorialTreeModel: GLTF | null = null;
+registerPreload(loadGltf(TUTORIAL_TREE_MODEL_URL).then((g) => { tutorialTreeModel = g; }));
+
 // ---------------------------------------------------------------------------
 // Deterministic placement helpers
 // ---------------------------------------------------------------------------
@@ -492,25 +496,44 @@ export class DungeonInteriors {
     group.add(shore);
     this.addTorchGlow(group, TUTORIAL_LAKE.x, TUTORIAL_LAKE.z, 0x42b8ff, 0.12, 1.1);
 
-    const treeGroup = new THREE.Group();
+    const treeGroup = this.createTutorialTreeModel();
     treeGroup.position.set(TUTORIAL_TREE.x, 0, TUTORIAL_TREE.z);
-    const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.32, 0.44, 3.2, 8),
-      new THREE.MeshLambertMaterial({ color: 0x6b4325 }),
-    );
-    trunk.position.set(0, 1.6, 0);
-    trunk.castShadow = true;
-    treeGroup.add(trunk);
-    const leaves = new THREE.Mesh(
-      new THREE.ConeGeometry(1.7, 3.1, 9),
-      new THREE.MeshLambertMaterial({ color: 0x2f8a3f }),
-    );
-    leaves.position.set(0, 3.7, 0);
-    leaves.castShadow = true;
-    treeGroup.add(leaves);
+    treeGroup.rotation.y = -0.45;
     group.add(treeGroup);
     this.tutorialTrees.set(`${TUTORIAL_TREE_KEY}:${Math.round(ox)}:${Math.round(oz)}`, treeGroup);
     p.add('floor_dirt_large_rocky', TUTORIAL_TREE.x, FLOOR_Y + 0.02, TUTORIAL_TREE.z, 0.3, 1.15);
+  }
+
+  private createTutorialTreeModel(): THREE.Group {
+    if (tutorialTreeModel) {
+      const model = tutorialTreeModel.scene.clone(true);
+      model.scale.setScalar(1.15);
+      model.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      });
+      return model;
+    }
+
+    // Fallback only: keep the blocky silhouette if the GLB cache ever fails.
+    const fallback = new THREE.Group();
+    const trunk = new THREE.Mesh(
+      new THREE.BoxGeometry(0.62, 3.0, 0.62),
+      new THREE.MeshLambertMaterial({ color: 0x6b4325 }),
+    );
+    trunk.position.set(0, 1.5, 0);
+    trunk.castShadow = true;
+    fallback.add(trunk);
+    const leaves = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 2.1, 2.4),
+      new THREE.MeshLambertMaterial({ color: 0x2f8a3f }),
+    );
+    leaves.position.set(0, 3.35, 0);
+    leaves.castShadow = true;
+    fallback.add(leaves);
+    return fallback;
   }
 
   // Wall-side obstacles at +-19 (OBB 2.2 x 4.2): sarcophagi in the crypt and
