@@ -230,7 +230,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_prowlers: {
     id: 'q_prowlers', name: 'Teeth of the Fen',
     giverNpcId: 'warden_fenwick', turnInNpcId: 'warden_fenwick',
-    text: 'The mire prowlers have learned what a supply mule sounds like, and now they hunt the causeway itself. Last week they dragged a courier into the reeds not fifty paces from this gate. Thin them out, $N — twelve dead prowlers ought to teach the rest fear.',
+    text: 'The Mire Blobdogs have learned what a supply mule sounds like, and now they hunt the causeway itself. Last week they dragged a courier into the reeds not fifty paces from this gate. Thin them out, $N — twelve dead Blobdogs ought to teach the rest fear.',
     completionText: 'Twelve, and not a bite on you? The causeway breathes easier tonight.',
     objectives: [{ type: 'kill', targetMobId: 'mire_prowler', count: 12, label: 'Mire Blobdog slain' }],
     xpReward: 800, copperReward: 300, itemRewards: {},
@@ -238,7 +238,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_prowler_pelts: {
     id: 'q_prowler_pelts', name: 'Pelts for the Causeway',
     giverNpcId: 'provisioner_hale', turnInNpcId: 'provisioner_hale',
-    text: 'Every plank of that causeway rests on pilings wrapped in oiled prowler hide — the only thing the rot will not chew through. My stock is gone and the south spans are already sinking. Bring me 8 unspoiled pelts, $N, before we are all wading to Dawnmere.',
+    text: 'Every plank of that causeway rests on pilings wrapped in oiled Mire Blobdog hide — the only thing the rot will not chew through. My stock is gone and the south spans are already sinking. Bring me 8 unspoiled Mire Blobdog Pelts, $N, before we are all wading to Dawnmere.',
     completionText: 'Good thick pelts, these. The causeway will outlast the both of us now.',
     objectives: [{ type: 'collect', itemId: 'mire_prowler_pelt', count: 8, label: 'Mire Blobdog Pelt' }],
     xpReward: 850, copperReward: 350, itemRewards: {},
@@ -255,7 +255,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_deepfen: {
     id: 'q_deepfen', name: 'The Eldermire Stirs',
     giverNpcId: 'warden_fenwick', turnInNpcId: 'warden_fenwick',
-    text: 'The Eldermire murlocs kept to their shallows for twenty years. Now they swarm the east bank like flies on a carcass — and my wardens say they are dragging things up from the lake bed. Whatever has them stirred, I want it stopped. Cull 12 of the snappers.',
+    text: 'The Eldermire Croakers kept to their shallows for twenty years. Now they swarm the east bank like flies on a carcass — and my wardens say they are dragging things up from the lake bed. Whatever has them stirred, I want it stopped. Cull 12 of the Croakers.',
     completionText: "That will push them back to the mud for a while. But something set them digging, and I mean to learn what.",
     objectives: [{ type: 'kill', targetMobId: 'deepfen_murloc', count: 12, label: 'Eldermire Croaker slain' }],
     xpReward: 1000, copperReward: 400, itemRewards: {},
@@ -264,16 +264,16 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_idols: {
     id: 'q_idols', name: 'Idols of the Deep',
     giverNpcId: 'brother_aldric_fen', turnInNpcId: 'brother_aldric_fen',
-    text: "Fenwick's wardens say the fish-men dredge idols from the lake bottom and clutch them like holy relics. If those idols are what I fear, I must see them with my own eyes. Take 5 from the Eldermire snappers — they will not part with them kindly.",
+    text: "Fenwick's wardens say the Eldermire Croakers dredge idols from the lake bottom and clutch them like holy relics. If those idols are what I fear, I must see them with my own eyes. Take 5 Waterlogged Croaker Idols from them — they will not part with them kindly.",
     completionText: 'Gravecaller work — older than Morthen, older than me. The sect did not begin in Dawnmere, $N. It began here, and the lake has been keeping its secrets.',
-    objectives: [{ type: 'collect', itemId: 'waterlogged_idol', count: 5, label: 'Waterlogged Idol' }],
+    objectives: [{ type: 'collect', itemId: 'waterlogged_idol', count: 5, label: 'Waterlogged Croaker Idol' }],
     xpReward: 1050, copperReward: 400, itemRewards: {},
     requiresQuest: 'q_deepfen',
   },
   q_deepfen_purge: {
     id: 'q_deepfen_purge', name: 'Back to the Shallows',
     giverNpcId: 'warden_fenwick', turnInNpcId: 'warden_fenwick',
-    text: "Aldric says those idols are cult-make — which means the murlocs are hauling the marsh's old evil up one armful at a time. I will not have it washing onto my causeway. Go back to the shallows and break the dredging for good: 14 more snappers.",
+    text: "Aldric says those idols are cult-make — which means the Eldermire Croakers are hauling the marsh's old evil up one armful at a time. I will not have it washing onto my causeway. Go back to the shallows and break the dredging for good: 14 more Croakers.",
     completionText: "Ruthless and thorough. If this marsh ever dries out, there's warden's work waiting for you.",
     objectives: [{ type: 'kill', targetMobId: 'deepfen_murloc', count: 14, label: 'Eldermire Croaker slain' }],
     xpReward: 1100, copperReward: 450, itemRewards: {},
@@ -282,11 +282,11 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_widows: {
     id: 'q_widows', name: 'Silk and Venom',
     giverNpcId: 'herbalist_yara', turnInNpcId: 'herbalist_yara',
-    text: "Widow venom is the only thing that draws fen-rot from a wound — I bled a man of it just this morning. But the thicket west of the road has gone from nuisance to horror; the webs are taking deer whole now. Kill 10 widows and cut me 6 venom sacs, whole and unburst.",
+    text: "Widow venom is the only thing that draws fen-rot from a wound — I bled a man of it just this morning. But the thicket west of the road has gone from nuisance to horror; the webs are taking deer whole now. Kill 10 Mistfen Spikers and cut me 6 Spiker venom sacs, whole and unburst.",
     completionText: 'Whole sacs, every one. You have steadier hands than half the surgeons in the south, $N.',
     objectives: [
       { type: 'kill', targetMobId: 'mire_widow', count: 10, label: 'Mistfen Spiker slain' },
-      { type: 'collect', itemId: 'widow_venom_sac', count: 6, label: 'Widow Venom Sac' },
+      { type: 'collect', itemId: 'widow_venom_sac', count: 6, label: 'Mistfen Spiker Venom Sac' },
     ],
     xpReward: 1200, copperReward: 450, itemRewards: {},
     minLevel: 8,
@@ -294,7 +294,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_broodmother: {
     id: 'q_broodmother', name: 'The Spiker Broodmother',
     giverNpcId: 'herbalist_yara', turnInNpcId: 'herbalist_yara',
-    text: "You have seen the webs — now ask yourself what spins cables thick as a man's wrist. The wardens call her the Broodmother, and her clutch hangs over Blacklace Thicket like a second canopy. Burn through 8 more widows and put the old mother down before that clutch opens.",
+    text: "You have seen the webs — now ask yourself what spins cables thick as a man's wrist. The wardens call her the Broodmother, and her clutch hangs over Blacklace Thicket like a second canopy. Burn through 8 more Mistfen Spikers and put the old mother down before that clutch opens.",
     completionText: 'Dead? Truly dead? Then the thicket is just trees again. The Light bless your blade, $N.',
     objectives: [
       { type: 'kill', targetMobId: 'mire_widow', count: 8, label: 'Mistfen Spiker slain' },
@@ -334,8 +334,8 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_trolls: {
     id: 'q_trolls', name: 'Mounds of the Mistfen',
     giverNpcId: 'warden_fenwick', turnInNpcId: 'warden_fenwick',
-    text: 'The Mistfen trolls have torn open the old barrow-mounds east of the far lake — burial mounds, $N, older than any kingdom of men. Whatever gold they think is down there, what they are letting OUT is worse. Drive them off the mounds: 12 trolls dead ought to do it.',
-    completionText: "Trolls don't dig without a reason. Someone told them where to dig — and I'd wager my gate it wears a grey robe.",
+    text: 'The Mistfen Orcs have torn open the old barrow-mounds east of the far lake — burial mounds, $N, older than any kingdom of men. Whatever gold they think is down there, what they are letting OUT is worse. Drive them off the mounds: 12 Mistfen Orcs dead ought to do it.',
+    completionText: "Mistfen Orcs don't dig without a reason. Someone told them where to dig — and I'd wager my gate it wears a grey robe.",
     objectives: [{ type: 'kill', targetMobId: 'fen_troll', count: 12, label: 'Mistfen Orc slain' }],
     xpReward: 1600, copperReward: 600, itemRewards: {},
     minLevel: 10,
@@ -343,8 +343,8 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_troll_fetishes: {
     id: 'q_troll_fetishes', name: 'Fetish and Bone',
     giverNpcId: 'scout_maren', turnInNpcId: 'scout_maren',
-    text: "I crawled the troll mounds two nights past. Those fetishes they plant are not troll-craft — the knots are wrong, the bones are man-bones, and every one points at the open barrows like a signpost. Bring me 8 of them and I will prove to Fenwick who is really paying for this dig.",
-    completionText: 'Same maker as the banners in the cult camp. The trolls are hired shovels, nothing more. Good work, $N.',
+    text: "I crawled the troll mounds two nights past. Those fetishes they plant are not orc-craft — the knots are wrong, the bones are man-bones, and every one points at the open barrows like a signpost. Bring me 8 of them and I will prove to Fenwick who is really paying for this dig.",
+    completionText: 'Same maker as the banners in the cult camp. The Mistfen Orcs are hired shovels, nothing more. Good work, $N.',
     objectives: [{ type: 'collect', itemId: 'troll_fetish', count: 8, label: 'Mistfen Orc Fetish' }],
     xpReward: 1650, copperReward: 600,
     itemRewards: { warrior: 'trollhide_leggings', mage: 'trollhide_leggings', rogue: 'trollhide_leggings' },
@@ -372,11 +372,11 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
   q_summoners: {
     id: 'q_summoners', name: 'Stopping the Summoning',
     giverNpcId: 'brother_aldric_fen', turnInNpcId: 'brother_aldric_fen',
-    text: "Maren's reports name summoners among the cultists — voices that call the drowned up out of the water like hounds to a whistle. Their ciphers will spell out the chain of command. Silence 8 summoners and bring me 4 of their ciphers.",
+    text: "Maren's reports name Gravecaller Hexcallers among the cultists — voices that call the drowned up out of the water like hounds to a whistle. Their ciphers will spell out the chain of command. Silence 8 Hexcallers and bring me 4 Hexcaller Ciphers.",
     completionText: "Every cipher is countersigned 'Deacon Voss' — and addressed onward to a 'Mistcaller' in the Bastion. Morthen's master, $N. We have found him.",
     objectives: [
-      { type: 'kill', targetMobId: 'gravecaller_summoner', count: 8, label: 'Gravecaller Summoner slain' },
-      { type: 'collect', itemId: 'cult_cipher', count: 4, label: 'Gravecaller Cipher' },
+      { type: 'kill', targetMobId: 'gravecaller_summoner', count: 8, label: 'Gravecaller Hexcaller slain' },
+      { type: 'collect', itemId: 'cult_cipher', count: 4, label: 'Hexcaller Cipher' },
     ],
     xpReward: 1900, copperReward: 750, itemRewards: {},
     requiresQuest: 'q_cult_camp',
@@ -513,12 +513,12 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
   fen_muster_order: { id: 'fen_muster_order', name: 'Mistfen Crossing Muster Order', kind: 'quest', sellValue: 0, questId: 'q_fenbridge_muster' },
   mire_prowler_pelt: { id: 'mire_prowler_pelt', name: 'Mire Blobdog Pelt', kind: 'quest', sellValue: 0, questId: 'q_prowler_pelts' },
   lost_caravan_goods: { id: 'lost_caravan_goods', name: 'Lost Caravan Goods', kind: 'quest', sellValue: 0, questId: 'q_fen_supplies' },
-  waterlogged_idol: { id: 'waterlogged_idol', name: 'Waterlogged Idol', kind: 'quest', sellValue: 0, questId: 'q_idols' },
-  widow_venom_sac: { id: 'widow_venom_sac', name: 'Widow Venom Sac', kind: 'quest', sellValue: 0, questId: 'q_widows' },
+  waterlogged_idol: { id: 'waterlogged_idol', name: 'Waterlogged Croaker Idol', kind: 'quest', sellValue: 0, questId: 'q_idols' },
+  widow_venom_sac: { id: 'widow_venom_sac', name: 'Mistfen Spiker Venom Sac', kind: 'quest', sellValue: 0, questId: 'q_widows' },
   rusted_censer: { id: 'rusted_censer', name: 'Rusted Censer', kind: 'quest', sellValue: 0, questId: 'q_drowned_censers' },
   troll_fetish: { id: 'troll_fetish', name: 'Mistfen Orc Fetish', kind: 'quest', sellValue: 0, questId: 'q_troll_fetishes' },
   grubjaw_tusk: { id: 'grubjaw_tusk', name: "Grubjaw's Tusk", kind: 'quest', sellValue: 0, questId: 'q_grubjaw' },
-  cult_cipher: { id: 'cult_cipher', name: 'Gravecaller Cipher', kind: 'quest', sellValue: 0, questId: 'q_summoners' },
+  cult_cipher: { id: 'cult_cipher', name: 'Hexcaller Cipher', kind: 'quest', sellValue: 0, questId: 'q_summoners' },
   bastion_ward_stone: { id: 'bastion_ward_stone', name: 'Bastion Ward Stone', kind: 'quest', sellValue: 0, questId: 'q_bastion_door' },
   // --- quest reward gear (uncommon) ---
   deacons_cleaver: {

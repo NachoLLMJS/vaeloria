@@ -234,11 +234,11 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
     requiresQuest: 'q_wolves',
   },
   q_boars: {
-    id: 'q_boars', name: 'Bristleback Hides',
+    id: 'q_boars', name: 'Mushnub Hides',
     giverNpcId: 'trader_wilkes', turnInNpcId: 'trader_wilkes',
-    text: 'Boar hide makes the finest travel packs, and the meadows west of town are crawling with the beasts. Bring me 5 Bristly Boar Hides and I will make it worth your time.',
-    completionText: 'Ah, fine bristly hides! These will fetch a good price.',
-    objectives: [{ type: 'collect', itemId: 'boar_hide', count: 5, label: 'Bristly Boar Hide' }],
+    text: 'Wild Mushnub hide makes the finest travel packs, and the meadows west of town are crawling with the beasts. Bring me 5 Wild Mushnub Hides and I will make it worth your time.',
+    completionText: 'Ah, fine Mushnub hides! These will fetch a good price.',
+    objectives: [{ type: 'collect', itemId: 'boar_hide', count: 5, label: 'Wild Mushnub Hide' }],
     xpReward: 350, copperReward: 120, itemRewards: {},
   },
   q_lumber_for_a_home: {
@@ -270,11 +270,11 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
   q_spiders: {
     id: 'q_spiders', name: 'Silkshade Grove Menace',
     giverNpcId: 'apothecary_lin', turnInNpcId: 'apothecary_lin',
-    text: 'The lurkers in the eastern woods spin a silk I need for my poultices — and they have grown far too numerous besides. Cull 6 Silkshade Grove Spikers and cut 4 silk glands from their bellies.',
+    text: 'The lurkers in the eastern woods spin a silk I need for my poultices — and they have grown far too numerous besides. Cull 6 Silkshade Grove Spikers and cut 4 Spiker silk glands from their bellies.',
     completionText: 'Ugh, still twitching. Perfect. Here, you\'ve earned this.',
     objectives: [
       { type: 'kill', targetMobId: 'webwood_spider', count: 6, label: 'Silkshade Grove Spiker slain' },
-      { type: 'collect', itemId: 'webwood_silk', count: 4, label: 'Silkshade Grove Silk Gland' },
+      { type: 'collect', itemId: 'webwood_silk', count: 4, label: 'Silkshade Spiker Silk Gland' },
     ],
     xpReward: 420, copperReward: 140, itemRewards: {},
     minLevel: 2,
@@ -345,10 +345,10 @@ export const ZONE1_QUESTS: Record<string, QuestDef> = {
   q_rite: {
     id: 'q_rite', name: 'The Binding Rite',
     giverNpcId: 'brother_aldric', turnInNpcId: 'brother_aldric',
-    text: 'The crypt beneath the chapel must be unsealed if we are to stop the Gravecaller — but only a binding rite will let the living pass. I need 4 lumps of Blessed Tallow — the kobold diggers hoard candles by the crate — and 6 Ghostly Essences from the restless dead.',
+    text: 'The crypt beneath the chapel must be unsealed if we are to stop the Gravecaller — but only a binding rite will let the living pass. I need 4 lumps of Blessed Cactoro Wax from the Candle Cactoros — they hoard enchanted candles by the crate — and 6 Ghostly Essences from the restless dead.',
     completionText: 'It is done. The way below stands open... and may the Light forgive me for opening it. Gather your strongest companions before you descend, $N. No one should face the Hollow alone.',
     objectives: [
-      { type: 'collect', itemId: 'blessed_wax', count: 4, label: 'Blessed Tallow' },
+      { type: 'collect', itemId: 'blessed_wax', count: 4, label: 'Blessed Cactoro Wax' },
       { type: 'collect', itemId: 'ghostly_essence', count: 6, label: 'Ghostly Essence' },
     ],
     xpReward: 700, copperReward: 500, itemRewards: {},

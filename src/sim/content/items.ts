@@ -241,13 +241,13 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     stats: { armor: 32, agi: 3 }, sellValue: 500, requiredClass: ROG,
   },
   // --- quest items ---
-  boar_hide: { id: 'boar_hide', name: 'Bristly Boar Hide', kind: 'quest', sellValue: 0, questId: 'q_boars' },
+  boar_hide: { id: 'boar_hide', name: 'Wild Mushnub Hide', kind: 'quest', sellValue: 0, questId: 'q_boars' },
   gravecaller_sigil: { id: 'gravecaller_sigil', name: "Gravecaller's Sigil", kind: 'quest', sellValue: 0, questId: 'q_whispers' },
-  blessed_wax: { id: 'blessed_wax', name: 'Blessed Tallow', kind: 'quest', sellValue: 0, questId: 'q_rite' },
+  blessed_wax: { id: 'blessed_wax', name: 'Blessed Cactoro Wax', kind: 'quest', sellValue: 0, questId: 'q_rite' },
   ghostly_essence: { id: 'ghostly_essence', name: 'Ghostly Essence', kind: 'quest', sellValue: 0, questId: 'q_rite' },
-  webwood_silk: { id: 'webwood_silk', name: 'Silkshade Grove Silk Gland', kind: 'quest', sellValue: 0, questId: 'q_spiders' },
+  webwood_silk: { id: 'webwood_silk', name: 'Silkshade Spiker Silk Gland', kind: 'quest', sellValue: 0, questId: 'q_spiders' },
   supply_crate: { id: 'supply_crate', name: 'Stolen Supply Crate', kind: 'quest', sellValue: 0, questId: 'q_supplies' },
-  greyjaw_fang: { id: 'greyjaw_fang', name: "Old Greyjaw's Fang", kind: 'quest', sellValue: 0, questId: 'q_greyjaw' },
+  greyjaw_fang: { id: 'greyjaw_fang', name: "Old Greyblob's Fang", kind: 'quest', sellValue: 0, questId: 'q_greyjaw' },
   weathered_ledger_page: { id: 'weathered_ledger_page', name: 'Weathered Ledger Page', kind: 'quest', sellValue: 0, questId: 'q_names_of_the_dead' },
   morthen_grimoire: { id: 'morthen_grimoire', name: "Morthen's Grimoire", kind: 'quest', sellValue: 0, questId: 'q_gravecallers_trail' },
   // --- junk (gray) ---
