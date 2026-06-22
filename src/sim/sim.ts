@@ -407,6 +407,8 @@ export class Sim {
       petFishFed: opts?.state?.petFishFed ?? 0,
     };
     this.players.set(player.id, meta);
+    player.renderEquipment = { ...meta.equipment };
+    player.renderPetFishFed = meta.petFishFed;
     if (this.primaryId === -1) this.primaryId = player.id;
 
     if (opts?.state) {
@@ -436,6 +438,8 @@ export class Sim {
     }
 
     this.refreshKnownAbilities(meta, false);
+    player.renderEquipment = { ...meta.equipment };
+    player.renderPetFishFed = meta.petFishFed;
     recalcPlayerStats(player, cls, meta.equipment, petStatBonus(meta.petFishFed));
     if (opts?.state) {
       player.hp = Math.max(1, Math.min(player.maxHp, opts.state.hp));
@@ -3017,6 +3021,8 @@ export class Sim {
     this.removeItem(itemId, 1, meta.entityId);
     if (old) this.addItemSilent(old, 1, meta);
     meta.equipment[slot] = itemId;
+    p.renderEquipment = { ...meta.equipment };
+    p.renderPetFishFed = meta.petFishFed;
     recalcPlayerStats(p, meta.cls, meta.equipment, petStatBonus(meta.petFishFed));
     this.emit({ type: 'log', text: `Equipped ${def.name}.`, color: '#8f8', pid: meta.entityId });
   }
@@ -3077,6 +3083,8 @@ export class Sim {
     const before = petStatBonus(meta.petFishFed);
     this.removeFish(eaten, meta);
     meta.petFishFed += eaten;
+    p.renderEquipment = { ...meta.equipment };
+    p.renderPetFishFed = meta.petFishFed;
     const after = petStatBonus(meta.petFishFed);
     recalcPlayerStats(p, meta.cls, meta.equipment, after);
     this.emit({ type: 'log', text: `Your bat pet eats ${eaten} fish. Total fed: ${meta.petFishFed}.`, color: '#9cf', pid: meta.entityId });

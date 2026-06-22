@@ -185,6 +185,7 @@ export class Renderer {
   private axeTemplate: THREE.Object3D | null = null;
   private fishingRodTemplate: THREE.Object3D | null = null;
   private petFollower: PetFollowerView;
+  private remotePets = new Map<number, PetFollowerView>();
 
   private lowGfx: boolean;
   private post: PostPipeline | null = null;
@@ -843,6 +844,8 @@ export class Renderer {
       });
       if (v.portal) (v.portal.material as THREE.Material).dispose();
     }
+    const pet = this.remotePets.get(id);
+    if (pet) { pet.dispose(); this.remotePets.delete(id); }
     this.views.delete(id);
   }
 
@@ -873,8 +876,9 @@ export class Renderer {
 
   private applyEquippedWeaponVisual(active: CharacterVisual, e: Entity, hideForHarvestTool = false): void {
     if (hideForHarvestTool) { active.setEquippedWeapon(null, null); return; }
-    if (e.id !== this.sim.playerId) { active.setEquippedWeapon(null, null); return; }
-    const itemId = this.sim.equipment.mainhand ?? '';
+    const itemId = e.id === this.sim.playerId
+      ? (this.sim.equipment.mainhand ?? '')
+      : (e.renderEquipment?.mainhand ?? '');
     const def = HELD_WEAPONS[itemId];
     if (!def) { active.setEquippedWeapon(null, null); return; }
     const cached = this.gearTemplates.get(def.file);
@@ -1126,6 +1130,21 @@ export class Renderer {
 
     this.vfx.update(dt);
     this.petFollower.update(dt, p, true, this.time);
+    for (const [id, pet] of [...this.remotePets]) {
+      if (!this.sim.entities.has(id)) { pet.dispose(); this.remotePets.delete(id); }
+    }
+    for (const e of this.sim.entities.values()) {
+      if (e.id === p.id || e.kind !== 'player') continue;
+      let pet = this.remotePets.get(e.id);
+      if (!pet) {
+        pet = new PetFollowerView(this.scene, this.sim.cfg.seed);
+        this.remotePets.set(e.id, pet);
+      }
+      const dx = e.pos.x - p.pos.x;
+      const dz = e.pos.z - p.pos.z;
+      const visible = dx * dx + dz * dz <= ENTITY_DRAW_RANGE * ENTITY_DRAW_RANGE;
+      pet.update(dt, e, visible, this.time + e.id * 0.37);
+    }
 
     this.updateCamera(alpha);
     this.updateAmbience(p.pos.x, this.camera.position.y, dt);

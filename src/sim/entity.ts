@@ -24,6 +24,7 @@ function baseEntity(id: number, pos: Vec3): Entity {
     aggroTargetId: null, respawnTimer: 0, corpseTimer: 0, lootable: false, loot: null,
     xpValue: 0, questIds: [], vendorItems: [], objectItemId: null, dungeonId: null,
     dead: false, scale: 1, color: 0xffffff,
+    renderEquipment: {}, renderPetFishFed: 0,
   };
 }
 

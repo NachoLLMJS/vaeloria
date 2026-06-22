@@ -200,7 +200,8 @@ function blankEntity(id: number): Entity {
     aggroTargetId: null, respawnTimer: 0, corpseTimer: 0, lootable: false, loot: null,
     xpValue: 0, questIds: [], vendorItems: [], objectItemId: null, dungeonId: null,
     dead: false, scale: 1, color: 0xffffff,
-  };
+ renderEquipment: {}, renderPetFishFed: 0,
+ };
 }
 
 export class ClientWorld implements IWorld {
@@ -212,6 +213,7 @@ export class ClientWorld implements IWorld {
   choppedTrees = new Map<string, number>();
   farms: FarmPlot[] = [];
   equipment: Partial<Record<EquipSlot, string>> = {};
+  petFishFed = 0;
   copper = 0;
   xp = 0;
   known: ResolvedAbility[] = [];
@@ -505,6 +507,8 @@ export class ClientWorld implements IWorld {
         value: 0, sourceId: 0, school: 'physical' as const,
       }));
       e.loot = w.lootList ?? null;
+      if (w.equip !== undefined) e.renderEquipment = w.equip ?? {};
+      if (w.petFishFed !== undefined) e.renderPetFishFed = Number(w.petFishFed) || 0;
       return e;
     };
 
@@ -550,6 +554,8 @@ export class ClientWorld implements IWorld {
       if (s.inv !== undefined) { this.inventory = s.inv; this.invChanged = true; }
       if (s.petFishFed !== undefined) this.petFishFed = Number(s.petFishFed) || 0;
       if (s.equip !== undefined) this.equipment = s.equip;
+      e.renderPetFishFed = this.petFishFed;
+      e.renderEquipment = { ...this.equipment };
       if (s.qlog !== undefined) this.questLog = new Map((s.qlog as QuestProgress[]).map((q) => [q.questId, q]));
       if (s.qdone !== undefined) this.questsDone = new Set(s.qdone);
       if (s.farms !== undefined) this.farms = s.farms;

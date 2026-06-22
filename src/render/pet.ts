@@ -77,6 +77,12 @@ export class PetFollowerView {
     }
   }
 
+  dispose(): void {
+    this.root.removeFromParent();
+    this.mixer = null;
+    this.fallback = null;
+  }
+
   update(dt: number, player: Entity, enabled: boolean, time: number): void {
     this.root.visible = enabled && !player.dead;
     if (!this.root.visible) return;

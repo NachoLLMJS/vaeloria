@@ -164,6 +164,10 @@ function dynamicFields(e: Entity): Record<string, unknown> {
   if (e.kind === 'mob' && e.lootable && e.loot) {
     out.lootList = { copper: e.loot.copper, items: e.loot.items };
   }
+  if (e.kind === 'player') {
+    if (e.renderPetFishFed !== undefined) out.petFishFed = e.renderPetFishFed;
+    if (e.renderEquipment && Object.keys(e.renderEquipment).length > 0) out.equip = e.renderEquipment;
+  }
   return out;
 }
 

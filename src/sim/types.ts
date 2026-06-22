@@ -385,6 +385,9 @@ export interface Entity {
   // so each interpolates on its own clock (see ClientWorld.applySnapshot)
   netUpdatedAt?: number;
   netInterval?: number;
+  /** Visual-only player data mirrored to other clients. */
+  renderEquipment?: Partial<Record<EquipSlot, string>>;
+  renderPetFishFed?: number;
   vy: number; // vertical velocity (jumping/falling)
   onGround: boolean;
   fallStartY: number;
