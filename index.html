@@ -2449,6 +2449,44 @@
 
   /* ---- background scene layers ---- */
   .scene-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+
+  /* Login scene: swap the old hand-built CSS portal/door for a still frame of the
+     live in-game diorama (same world the character-creation preview renders), so
+     the online entry matches the new UI instead of the legacy creator backdrop.
+     Dark radial + vertical gradients sink the centred hero into a silhouette and
+     keep the sign-in card readable. */
+  #login-panel .scene-bg {
+    background:
+      radial-gradient(ellipse 58% 66% at 50% 47%, rgba(5,7,10,.72), rgba(5,7,10,.34) 56%, rgba(5,7,10,0) 82%),
+      linear-gradient(180deg, rgba(5,7,10,.5) 0%, rgba(5,7,10,.1) 28%, rgba(5,7,10,.32) 68%, rgba(5,7,10,.88) 100%),
+      url('/images/login-bg.jpg') center / cover no-repeat;
+    background-color: #0a0d10;
+  }
+  #login-panel .scene-bg > .scene-sky,
+  #login-panel .scene-bg > .scene-sun,
+  #login-panel .scene-bg > .scene-ray,
+  #login-panel .scene-bg > .scene-mtn,
+  #login-panel .scene-bg > .scene-portal,
+  #login-panel .scene-bg > .scene-pillar,
+  #login-panel .scene-bg > .scene-lintel,
+  #login-panel .scene-bg > .scene-fog { display: none !important; }
+
+  /* Character-creation preview fallback. The live god-rays diorama canvas
+     (alpha:true, z-index:1) can intermittently present a transparent frame
+     (GPU/compositor hiccup or slow asset load) — historically the orange CSS
+     portal scene then bled through ("background naranja / el modelo no cargó").
+     Put a still of the SAME world behind the canvas instead: when the 3D renders
+     it covers this; when a frame drops you see a near-identical static diorama
+     rather than a jarring orange flash. Pure CSS, no touch to the 3D pipeline. */
+  #offline-select .scene-bg,
+  #charselect-panel .scene-bg {
+    background:
+      radial-gradient(ellipse 52% 44% at 50% 80%, rgba(8,11,14,.45), transparent 70%),
+      url('/images/login-bg.jpg') center / cover no-repeat;
+    background-color: #0a0d10;
+  }
+  #offline-select .scene-bg > *,
+  #charselect-panel .scene-bg > * { display: none !important; }
   .scene-sky {
     position: absolute; inset: 0; transform-origin: center;
     background: linear-gradient(180deg,#160d2a 0%,#3a1838 22%,#6e2a24 44%,#b04c1e 64%,#e08a2e 80%,#f3c265 96%);
