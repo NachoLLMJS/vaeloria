@@ -26,7 +26,13 @@ ENV VITE_SOLANA_RPC_URL=$VITE_SOLANA_RPC_URL
 ENV VITE_SOLANA_RPC_WS_URL=$VITE_SOLANA_RPC_WS_URL
 ENV VITE_VAELORIA_TOKEN_MINT=$VITE_VAELORIA_TOKEN_MINT
 
-RUN npm run build && cp -a dist/media ./media-build && rm -rf dist/media && npm run build:server
+# Vite copies everything from public/ into dist/. The game loads heavy runtime media
+# (models/textures/env/vfx) through the hashed /media manifest, so remove the raw
+# copies after extracting /media to avoid shipping those assets twice on Railway.
+RUN npm run build \
+  && cp -a dist/media ./media-build \
+  && rm -rf dist/media dist/models dist/textures dist/env dist/vfx \
+  && npm run build:server
 
 FROM node:22-bookworm-slim
 WORKDIR /app
