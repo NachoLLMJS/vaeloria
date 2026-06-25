@@ -1654,7 +1654,7 @@ export class Hud {
   }
 
   private async fetchVaeloriaHoldings(wallet: string): Promise<string> {
-    const mint = (import.meta.env.VITE_VAELORIA_TOKEN_MINT as string | undefined) || '';
+    const mint = (import.meta.env.VITE_VAELORIA_TOKEN_MINT as string | undefined) || '1KbF7jpNt3Yj4n7DufPuuTGPBum7kobW9wkaAh1pump';
     if (!mint || mint.includes('111111111111')) return 'Token mint not configured yet';
     try {
       const rpcUrl = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'https://api.mainnet-beta.solana.com';

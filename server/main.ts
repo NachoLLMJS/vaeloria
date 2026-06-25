@@ -23,7 +23,8 @@ const PORT = Number(process.env.PORT ?? 8787);
 const STATIC_DIR = path.join(__dirname, '..', 'dist');
 // How long chat logs are kept (0 = forever); pruned at boot and daily.
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
-const VAELORIA_TOKEN_MINT = (process.env.VAELORIA_TOKEN_MINT ?? '').trim();
+const DEFAULT_VAELORIA_TOKEN_MINT = '1KbF7jpNt3Yj4n7DufPuuTGPBum7kobW9wkaAh1pump';
+const VAELORIA_TOKEN_MINT = process.env.VAELORIA_TOKEN_MINT?.trim() || DEFAULT_VAELORIA_TOKEN_MINT;
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const games = new Map(REALM_DIRECTORY.map((r) => [r.name, new GameServer(r.name, realmRewardMultiplier(r.name))]));
 function gameForRealm(realm: string): GameServer {
