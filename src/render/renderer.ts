@@ -25,6 +25,7 @@ import { FarmsteadView } from './farmstead';
 import { buildFishingView, FishingView } from './fishing';
 import { shouldRenderStealthGhost } from './stealth';
 import { loadGltf } from './assets/loader';
+import { assetUrl } from './assets/media';
 import { PetFollowerView } from './pet';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
@@ -852,13 +853,11 @@ export class Renderer {
   private loadFishingRodTemplate(): void {
     const base = '/models/fishing/';
     const mtl = new MTLLoader();
-    mtl.setPath(base);
-    mtl.load('FishingRod_Lvl1.mtl', (materials) => {
+    mtl.load(assetUrl(`${base}FishingRod_Lvl1.mtl`), (materials) => {
       materials.preload();
       const obj = new OBJLoader();
       obj.setMaterials(materials);
-      obj.setPath(base);
-      obj.load('FishingRod_Lvl1.obj', (root) => {
+      obj.load(assetUrl(`${base}FishingRod_Lvl1.obj`), (root) => {
         root.name = 'FishingRod_Lvl1';
         root.traverse((o) => {
           const mesh = o as THREE.Mesh;
@@ -886,7 +885,7 @@ export class Renderer {
     active.setEquippedWeapon(null, null);
     if (this.gearLoading.has(def.file)) return;
     this.gearLoading.add(def.file);
-    this.gearLoader.load(`${GEAR_BASE}${def.file}`, (root) => {
+    this.gearLoader.load(assetUrl(`${GEAR_BASE}${def.file}`), (root) => {
       root.name = def.file.replace(/\.fbx$/i, '');
       root.traverse((o) => {
         const mesh = o as THREE.Mesh;

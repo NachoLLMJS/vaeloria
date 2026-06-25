@@ -3,6 +3,7 @@ import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { WORLD_MAX_X, WORLD_MAX_Z, WORLD_MIN_X, WORLD_MIN_Z, ZONES } from '../sim/data';
 import { terrainHeight, WATER_LEVEL } from '../sim/world';
+import { assetUrl } from './assets/media';
 
 const BASE = '/models/fishing/';
 
@@ -84,13 +85,11 @@ function fallbackFish(def: FishDef): THREE.Group {
 
 function loadFish(def: FishDef, target: THREE.Group): void {
   const mtl = new MTLLoader();
-  mtl.setPath(BASE);
-  mtl.load(`${def.model}.mtl`, (materials) => {
+  mtl.load(assetUrl(`${BASE}${def.model}.mtl`), (materials) => {
     materials.preload();
     const obj = new OBJLoader();
     obj.setMaterials(materials);
-    obj.setPath(BASE);
-    obj.load(`${def.model}.obj`, (root) => {
+    obj.load(assetUrl(`${BASE}${def.model}.obj`), (root) => {
       target.clear();
       applyQualityGlow(root, def.quality);
       root.scale.setScalar(def.scale);

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { loadTexture } from './assets/loader';
+import { assetUrl } from './assets/media';
 import { registerPreload } from './assets/preload';
 import { GFX } from './gfx';
 
@@ -228,7 +229,7 @@ export class Vfx {
   private loadArrowTemplate(): void {
     if (this.arrowTemplate || this.arrowLoading) return;
     this.arrowLoading = true;
-    this.fbxLoader.load(ARROW_MODEL_URL, (root) => {
+    this.fbxLoader.load(assetUrl(ARROW_MODEL_URL), (root) => {
       root.name = 'ArrowProjectileTemplate';
       root.traverse((o) => {
         const mesh = o as THREE.Mesh;
