@@ -236,6 +236,7 @@ export function mountPrivyRealmLogin(target: HTMLElement, props: PrivyRealmLogin
         ...(PRIVY_CLIENT_ID ? { clientId: PRIVY_CLIENT_ID } : {}),
         config: {
           appearance: {
+            logo: '/images/vaeloria-logo.png',
             showWalletLoginFirst: false,
             walletChainType: 'solana-only',
             walletList: ['phantom', 'solflare', 'backpack'],
