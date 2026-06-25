@@ -46,17 +46,25 @@ export async function verifyPrivyRequest(req: http.IncomingMessage): Promise<Ver
   return { userId: claims.user_id };
 }
 
+export function isMatchingSolanaWalletAccount(account: unknown, solanaWallet: string): boolean {
+  const linked = account as {
+    address?: unknown;
+    chain_type?: unknown;
+    chainType?: unknown;
+    type?: unknown;
+  };
+  const chainType = linked.chain_type ?? linked.chainType;
+  return linked.type === 'wallet'
+    && chainType === 'solana'
+    && typeof linked.address === 'string'
+    && linked.address === solanaWallet;
+}
+
 export async function verifiedPrivySolanaWallet(userId: string, solanaWallet: string): Promise<boolean> {
   const sdk = privyClient();
   if (!sdk) throw new Error('PRIVY_APP_SECRET is required to verify Solana wallet ownership');
   const user = await sdk.users()._get(userId);
-  return user.linked_accounts.some((account) => {
-    const linked = account as { address?: unknown; chain_type?: unknown; connector_type?: unknown; wallet_client?: unknown };
-    return linked.chain_type === 'solana'
-      && typeof linked.address === 'string'
-      && linked.address === solanaWallet
-      && (linked.connector_type === 'embedded' || linked.wallet_client === 'privy');
-  });
+  return user.linked_accounts.some((account) => isMatchingSolanaWalletAccount(account, solanaWallet));
 }
 
 function stringField(obj: Record<string, unknown>, keys: string[]): string | undefined {
