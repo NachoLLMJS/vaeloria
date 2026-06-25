@@ -19,7 +19,8 @@ interface PrivyRealmLoginProps {
 }
 
 const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
-const PRIVY_CLIENT_ID = import.meta.env.VITE_PRIVY_CLIENT_ID as string | undefined;
+const VAELORIA_PRIVY_CLIENT_ID = 'client-WY6Zbdn6w2DrhPLKCwJAQEurq8g7LjX89nzZS4FEA3aHa';
+const PRIVY_CLIENT_ID = (import.meta.env.VITE_PRIVY_CLIENT_ID as string | undefined) || VAELORIA_PRIVY_CLIENT_ID;
 const SOLANA_RPC_URL = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'https://api.mainnet-beta.solana.com';
 const SOLANA_RPC_WS_URL = (import.meta.env.VITE_SOLANA_RPC_WS_URL as string | undefined) || 'wss://api.mainnet-beta.solana.com';
 
