@@ -1,0 +1,24 @@
+{
+  "name": "VAELORIA",
+  "short_name": "VAELORIA",
+  "description": "VAELORIA online fantasy MMO",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050301",
+  "theme_color": "#d6a85f",
+  "icons": [
+    {
+      "src": "/vaeloria-wallet-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/vaeloria-wallet-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
